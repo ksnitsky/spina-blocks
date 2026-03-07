@@ -1,0 +1,25 @@
+<div class="mt-6">
+  <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
+  <% if f.object.hint.present? %>
+    <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
+  <% end %>
+  <div class="mt-1">
+    <% blocks = Spina::Block.active.sorted %>
+    <% selected_ids = f.object.block_ids || [] %>
+    <div class="space-y-2">
+      <% blocks.each do |block| %>
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox"
+                 name="<%= f.object_name %>[block_ids][]"
+                 value="<%= block.id %>"
+                 <%= 'checked' if selected_ids.include?(block.id) %>
+                 class="form-checkbox rounded text-spina border-gray-300">
+          <span class="text-sm text-gray-700"><%= block.title %></span>
+          <span class="text-xs text-gray-400">(<%= block.block_template %>)</span>
+        </label>
+      <% end %>
+    </div>
+    <%# Ensure empty array is sent when nothing is selected %>
+    <input type="hidden" name="<%= f.object_name %>[block_ids][]" value="">
+  </div>
+</div>

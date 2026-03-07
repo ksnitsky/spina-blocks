@@ -1,0 +1,8 @@
+<div class="max-w-5xl">
+  <label class="font-medium text-gray-700">
+    <%= Spina::Block.human_attribute_name(:title, default: 'Title') %>
+  </label>
+  <%= render Spina::Forms::TextFieldComponent.new(f, :title, size: "lg") %>
+  <turbo-frame id="block_content" src="<%= spina.edit_content_admin_block_path(f.object, locale: @locale) %>">
+  </turbo-frame>
+</div>
