@@ -6,7 +6,7 @@ module Spina
       attr_accessor :options
 
       def content
-        ::Spina::Block.active.find_by(id: block_id)
+        ::Spina::Blocks::Block.active.find_by(id: block_id)
       end
     end
   end

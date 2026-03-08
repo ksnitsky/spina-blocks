@@ -30,7 +30,7 @@ Spina::Theme.register do |theme|
   theme.title = "My Theme"
 
   # Enable the blocks plugin
-  theme.plugins = ["spina_blocks"]
+  theme.plugins = ["blocks"]
 
   # Define all available parts (shared between pages and blocks)
   theme.parts = [
@@ -98,7 +98,7 @@ In your page template, render all attached blocks:
 <%= render_blocks %>
 ```
 
-Manage which blocks appear on a page via Admin > Pages > [Page] > Manage Blocks.
+Manage which blocks appear on a page via Admin > Blocks > (select page).
 
 #### Option 2: Block as a part type
 
@@ -123,6 +123,14 @@ Then in your template:
 <% end %>
 ```
 
+## Models
+
+| Model | Description |
+|-------|-------------|
+| `Spina::Blocks::Block` | Reusable content block with template and parts |
+| `Spina::Blocks::Category` | Block category for organizing the library |
+| `Spina::Blocks::PageBlock` | Join model linking blocks to pages (with position) |
+
 ## Admin interface
 
 The plugin adds:
@@ -130,7 +138,7 @@ The plugin adds:
 - **Blocks** link in the Content section of the admin sidebar
 - Block library with category tabs for filtering
 - Block editor with content fields (same as page editor)
-- Page Blocks management page (accessible from page edit)
+- Page Blocks management page (per-page block assignment and ordering)
 
 ## Helper methods
 

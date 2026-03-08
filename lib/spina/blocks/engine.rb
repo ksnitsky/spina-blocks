@@ -1,12 +1,12 @@
 module Spina
   module Blocks
     class Engine < ::Rails::Engine
-      isolate_namespace Spina
+      isolate_namespace Spina::Blocks
 
       config.before_initialize do
-        Spina::Plugin.register do |plugin|
-          plugin.name = 'spina_blocks'
-          plugin.namespace = 'spina_blocks'
+        ::Spina::Plugin.register do |plugin|
+          plugin.name = 'blocks'
+          plugin.namespace = 'blocks'
         end
       end
 
@@ -20,7 +20,7 @@ module Spina
 
       initializer 'spina.blocks.register_parts' do
         config.to_prepare do
-          Spina::Part.register(
+          ::Spina::Part.register(
             Spina::Parts::BlockReference,
             Spina::Parts::BlockCollection
           )
@@ -28,7 +28,7 @@ module Spina
       end
 
       initializer 'spina.blocks.extend_theme' do
-        Spina::Theme.class_eval do
+        ::Spina::Theme.class_eval do
           attr_accessor :block_templates, :block_categories
 
           unless method_defined?(:initialize_without_blocks)
@@ -45,17 +45,15 @@ module Spina
 
       initializer 'spina.blocks.extend_page' do
         config.to_prepare do
-          config_path = Spina::Blocks::Engine.root.join('app/overrides')
-
-          Dir.glob(config_path.join('**/*.rb')).sort.each do |override|
+          Dir.glob(Spina::Blocks::Engine.root.join('app/overrides/**/*.rb')).sort.each do |override|
             load override
           end
         end
       end
 
       initializer 'spina.blocks.tailwind_content' do
-        Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/views/**/*.*"
-        Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/helpers/**/*.*"
+        ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/views/**/*.*"
+        ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/helpers/**/*.*"
       end
 
       initializer 'spina.blocks.i18n' do
@@ -64,7 +62,7 @@ module Spina
 
       initializer 'spina.blocks.helpers' do
         ActiveSupport.on_load(:action_view) do
-          include Spina::BlocksHelper
+          include Spina::Blocks::BlocksHelper
         end
       end
     end

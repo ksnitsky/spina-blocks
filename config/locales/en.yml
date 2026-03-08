@@ -36,5 +36,3 @@ en:
       remove_confirmation: "Remove this block from the page?"
       no_blocks_yet: "No blocks on this page yet. Add blocks from the library to build your page."
       manage_blocks: "Manage blocks"
-    spina_blocks:
-      title: "Blocks"

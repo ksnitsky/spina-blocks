@@ -4,10 +4,10 @@
     <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
   <% end %>
   <div class="mt-1">
-    <% blocks = Spina::Block.active.sorted %>
+    <% blocks = Spina::Blocks::Block.active.sorted %>
     <%= f.select :block_id,
           blocks.map { |b| [b.title, b.id] },
-          {include_blank: t('spina.blocks.select_block', default: '— Select block —')},
+          {include_blank: t('spina.blocks.select_block')},
           class: "form-select text-sm w-full shadow-xs" %>
   </div>
 </div>

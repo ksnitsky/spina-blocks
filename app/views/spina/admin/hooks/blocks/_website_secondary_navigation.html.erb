@@ -1,0 +1,5 @@
+<%= render Spina::MainNavigation::LinkComponent.new(
+  t('spina.blocks.title'),
+  spina.blocks_admin_blocks_path,
+  active: controller_name.in?(%w(blocks categories page_blocks))
+) %>

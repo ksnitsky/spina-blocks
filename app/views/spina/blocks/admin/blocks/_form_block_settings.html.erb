@@ -1,10 +1,10 @@
 <div class="max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
   <div class="col-span-1 mt-6 md:mt-0">
     <label class="block text-sm font-medium leading-5 text-gray-700">
-      <%= Spina::Block.human_attribute_name(:name, default: 'Identifier') %>
+      <%= Spina::Blocks::Block.human_attribute_name(:name) %>
     </label>
     <div class="text-sm leading-5">
-      <p class="text-gray-500"><%= t('spina.blocks.name_description', default: 'Unique identifier for this block. Used in code.') %></p>
+      <p class="text-gray-500"><%= t('spina.blocks.name_description') %></p>
     </div>
   </div>
 
@@ -14,7 +14,7 @@
 
   <div class="col-span-1 mt-6 md:mt-0">
     <label class="block text-sm font-medium leading-5 text-gray-700">
-      <%= Spina::Block.human_attribute_name(:block_template, default: 'Template') %>
+      <%= Spina::Blocks::Block.human_attribute_name(:block_template) %>
     </label>
   </div>
 
@@ -24,24 +24,24 @@
 
   <div class="col-span-1 mt-6 md:mt-0">
     <label class="block text-sm font-medium leading-5 text-gray-700">
-      <%= Spina::Block.human_attribute_name(:block_category, default: 'Category') %>
+      <%= Spina::Blocks::Block.human_attribute_name(:category) %>
     </label>
   </div>
 
   <div class="col-span-2 mt-1">
-    <% categories = Spina::BlockCategory.sorted %>
-    <%= f.select :block_category_id,
+    <% categories = Spina::Blocks::Category.sorted %>
+    <%= f.select :category_id,
           categories.map { |c| [c.label, c.id] },
-          {include_blank: t('spina.blocks.no_category', default: '— No category —')},
+          {include_blank: t('spina.blocks.no_category')},
           class: "form-select text-sm w-full shadow-xs" %>
   </div>
 
   <div class="col-span-1 mt-6 md:mt-0">
     <label class="block text-sm font-medium leading-5 text-gray-700">
-      <%= Spina::Block.human_attribute_name(:active, default: 'Active') %>
+      <%= Spina::Blocks::Block.human_attribute_name(:active) %>
     </label>
     <div class="text-sm leading-5">
-      <p class="text-gray-500"><%= t('spina.blocks.active_description', default: 'Inactive blocks are hidden from pages.') %></p>
+      <p class="text-gray-500"><%= t('spina.blocks.active_description') %></p>
     </div>
   </div>
 
