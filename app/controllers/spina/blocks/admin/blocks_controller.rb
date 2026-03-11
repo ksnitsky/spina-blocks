@@ -27,6 +27,7 @@ module Spina
         end
 
         def new
+          @block_templates = current_theme.try(:block_templates) || []
           @block = Spina::Blocks::Block.new(block_template: params[:block_template])
         end
 
@@ -35,6 +36,7 @@ module Spina
           if @block.save
             redirect_to spina.edit_blocks_admin_block_url(@block)
           else
+            @block_templates = current_theme.try(:block_templates) || []
             render turbo_stream: turbo_stream.update(
               helpers.dom_id(@block, :new_block_form),
               partial: 'new_block_form'

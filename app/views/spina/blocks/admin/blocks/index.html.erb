@@ -2,47 +2,62 @@
   <% header.with_actions do %>
     <% block_templates = current_theme.try(:block_templates) || [] %>
     <% if block_templates.any? %>
-      <div class="relative" data-controller="reveal" data-reveal-away-value>
-        <button type="button" class="btn btn-primary" data-action="reveal#toggle">
-          <%= heroicon('plus', style: :mini, class: 'w-4 h-4 mr-1 -ml-1') %>
-          <%= t('spina.blocks.new') %>
-        </button>
-
-        <div hidden data-reveal data-transition class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg border border-gray-200 z-30">
-          <div class="rounded-md bg-white shadow-xs py-1">
-            <% block_templates.each do |bt| %>
-              <%= link_to spina.new_blocks_admin_block_path(block_template: bt[:name]),
-                    class: "block px-4 py-2 text-sm font-medium leading-5 text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-                    data: {turbo_frame: "modal", action: "reveal#hide"} do %>
-                <%= bt[:title] %>
-                <% if bt[:description].present? %>
-                  <span class="text-gray-400 text-xs block"><%= bt[:description] %></span>
-                <% end %>
-              <% end %>
-            <% end %>
-          </div>
-        </div>
-      </div>
+      <%= link_to spina.new_blocks_admin_block_path,
+            class: "btn btn-primary",
+            data: {turbo_frame: "modal"} do %>
+        <%= heroicon('plus', style: :mini, class: 'w-4 h-4 mr-1 -ml-1') %>
+        <%= t('spina.blocks.new') %>
+      <% end %>
     <% end %>
   <% end %>
 
   <% header.with_navigation do %>
-    <nav class="-mb-1 md:-mb-3 mt-4">
-      <ul class="inline-flex flex-wrap w-auto rounded-md bg-white">
-        <%= render Spina::UserInterface::TabLinkComponent.new(spina.blocks_admin_blocks_path, active: @current_block_template.nil?) do %>
-          <%= heroicon('squares-2x2', class: 'h-4 w-4 mr-1 -ml-1 opacity-75') %>
-          <%= t('spina.blocks.all') %>
-        <% end %>
+    <% if @block_templates.any? %>
+      <nav class="-mb-1 md:-mb-3 mt-4">
+        <div class="relative inline-block" data-controller="reveal" data-reveal-away-value>
+          <button type="button"
+                  class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  data-action="reveal#toggle">
+            <% if @current_block_template.present? %>
+              <% current_bt = @block_templates.find { |bt| bt[:name].to_s == @current_block_template } %>
+              <%= current_bt ? current_bt[:title] : @current_block_template %>
+            <% else %>
+              <%= heroicon('squares-2x2', class: 'h-4 w-4 mr-1.5 -ml-0.5 opacity-75') %>
+              <%= t('spina.blocks.all') %>
+            <% end %>
+            <%= heroicon('chevron-down', style: :mini, class: 'w-4 h-4 ml-1.5 -mr-0.5 opacity-50') %>
+          </button>
 
-        <% @block_templates.each do |bt| %>
-          <%= render Spina::UserInterface::TabLinkComponent.new(
-                spina.blocks_admin_blocks_path(block_template: bt[:name]),
-                active: @current_block_template == bt[:name].to_s) do %>
-            <%= bt[:title] %>
-          <% end %>
-        <% end %>
-      </ul>
-    </nav>
+          <div hidden data-reveal data-transition class="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg border border-gray-200 z-30">
+            <div class="rounded-md bg-white shadow-xs py-1">
+              <%= link_to spina.blocks_admin_blocks_path,
+                    class: "flex items-center px-4 py-2 text-sm font-medium leading-5 #{@current_block_template.nil? ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}",
+                    data: {action: "reveal#hide"} do %>
+                <%= heroicon('squares-2x2', class: 'h-4 w-4 mr-2 opacity-75') %>
+                <%= t('spina.blocks.all') %>
+                <% if @current_block_template.nil? %>
+                  <%= heroicon('check', style: :mini, class: 'w-4 h-4 ml-auto opacity-75') %>
+                <% end %>
+              <% end %>
+
+              <div class="border-t border-gray-100 my-1"></div>
+
+              <% @block_templates.each do |bt| %>
+                <% active = @current_block_template == bt[:name].to_s %>
+                <%= link_to spina.blocks_admin_blocks_path(block_template: bt[:name]),
+                      class: "flex items-center px-4 py-2 text-sm font-medium leading-5 #{active ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}",
+                      data: {action: "reveal#hide"} do %>
+                  <span class="flex-1"><%= bt[:title] %></span>
+                  <% if active %>
+                    <%= heroicon('check', style: :mini, class: 'w-4 h-4 ml-2 opacity-75') %>
+                  <% end %>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </nav>
+    <% end %>
   <% end %>
 <% end %>
 
