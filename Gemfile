@@ -1,5 +1,7 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
 
 gemspec
 
-gem "spina", path: "../Spina"
+gem 'spina', path: '../Spina'

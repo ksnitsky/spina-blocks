@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateSpinaBlocksPageBlocks < ActiveRecord::Migration[7.0]
   def change
     create_table :spina_blocks_page_blocks do |t|

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Spina
   module Blocks
     module BlocksHelper
@@ -20,8 +22,8 @@ module Spina
       def render_block(block)
         return unless block&.active?
 
-        theme_name = Spina::Current.theme&.name&.parameterize&.underscore ||
-                     current_theme.name.parameterize.underscore
+        current_spina_theme = Spina::Current.theme || current_theme
+        theme_name = current_spina_theme.name.parameterize.underscore
 
         partial_path = "#{theme_name}/blocks/#{block.block_template}"
 

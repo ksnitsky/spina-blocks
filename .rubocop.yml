@@ -1,0 +1,30 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 2.7
+  Exclude:
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+
+Style/Documentation:
+  Enabled: false
+
+Naming/FileName:
+  Exclude:
+    - 'lib/spina-blocks.rb'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'app/controllers/**/*'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'app/controllers/**/*'
+    - 'db/migrate/**/*'
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'app/helpers/**/*'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'app/helpers/**/*'

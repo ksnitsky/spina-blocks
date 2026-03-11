@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 Spina::Account.class_eval do
   after_save :bootstrap_block_categories
 
   private
 
   def bootstrap_block_categories
-    theme_config = ::Spina::Theme.find_by_name(theme)
+    theme_config = Spina::Theme.find_by_name(theme)
     return unless theme_config
     return unless theme_config.respond_to?(:block_categories) && theme_config.block_categories.present?
 
