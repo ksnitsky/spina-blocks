@@ -17,6 +17,8 @@ en:
       category: "Category"
       no_category: "— No category —"
       select_block: "— Select block —"
+      block_type: "Block type"
+      select_block_type: "— Select block type —"
       no_blocks_yet: "No blocks yet. Create your first block to get started."
       inactive: "Inactive"
       uncategorized: "Uncategorized"
