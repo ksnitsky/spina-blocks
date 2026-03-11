@@ -1,5 +1,5 @@
 Spina::Engine.routes.draw do
-  namespace :blocks, module: 'blocks' do
+  namespace :blocks, path: '', module: 'blocks' do
     namespace :admin, path: Spina.config.backend_path do
       resources :blocks do
         member do

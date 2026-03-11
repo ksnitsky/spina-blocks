@@ -11,7 +11,6 @@ module Spina
       has_many :pages, through: :page_blocks, class_name: 'Spina::Page'
 
       validates :title, presence: true
-      validates :name, presence: true, uniqueness: true
       validates :block_template, presence: true
 
       scope :active, -> { where(active: true) }

@@ -6,9 +6,9 @@ Gem::Specification.new do |gem|
   gem.name = 'spina-blocks'
   gem.version = Spina::Blocks::VERSION
 
-  gem.authors = ['Spina Blocks']
-  gem.email = ['dev@example.com']
-  gem.homepage = 'https://github.com/example/spina-blocks'
+  gem.authors = ['Konstantin Kanashchuk']
+  gem.email = ['ksnitsky@gmail.com']
+  gem.homepage = 'https://github.com/ksnitsky/spina-blocks'
   gem.summary = 'Block component library for Spina CMS'
   gem.description = 'A plugin for Spina CMS that adds reusable block components that can be assembled into pages.'
   gem.license = 'MIT'

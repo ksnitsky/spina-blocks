@@ -20,7 +20,6 @@ en:
       no_blocks_yet: "No blocks yet. Create your first block to get started."
       inactive: "Inactive"
       uncategorized: "Uncategorized"
-      name_description: "Unique identifier for this block. Used in code."
       active_description: "Inactive blocks are hidden from pages."
     block_categories:
       saved: "Category saved"

@@ -1,39 +1,12 @@
 <div class="max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
   <div class="col-span-1 mt-6 md:mt-0">
     <label class="block text-sm font-medium leading-5 text-gray-700">
-      <%= Spina::Blocks::Block.human_attribute_name(:name) %>
-    </label>
-    <div class="text-sm leading-5">
-      <p class="text-gray-500"><%= t('spina.blocks.name_description') %></p>
-    </div>
-  </div>
-
-  <div class="col-span-2 mt-1">
-    <%= f.text_field :name, class: "form-input shadow-xs text-sm w-full" %>
-  </div>
-
-  <div class="col-span-1 mt-6 md:mt-0">
-    <label class="block text-sm font-medium leading-5 text-gray-700">
       <%= Spina::Blocks::Block.human_attribute_name(:block_template) %>
     </label>
   </div>
 
   <div class="col-span-2 mt-1">
     <span class="text-sm text-gray-700"><%= @block.block_template %></span>
-  </div>
-
-  <div class="col-span-1 mt-6 md:mt-0">
-    <label class="block text-sm font-medium leading-5 text-gray-700">
-      <%= Spina::Blocks::Block.human_attribute_name(:category) %>
-    </label>
-  </div>
-
-  <div class="col-span-2 mt-1">
-    <% categories = Spina::Blocks::Category.sorted %>
-    <%= f.select :category_id,
-          categories.map { |c| [c.label, c.id] },
-          {include_blank: t('spina.blocks.no_category')},
-          class: "form-select text-sm w-full shadow-xs" %>
   </div>
 
   <div class="col-span-1 mt-6 md:mt-0">
