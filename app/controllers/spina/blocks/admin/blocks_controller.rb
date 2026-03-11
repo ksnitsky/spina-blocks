@@ -13,15 +13,15 @@ module Spina
         def index
           add_breadcrumb I18n.t('spina.blocks.title'), spina.blocks_admin_blocks_path
 
-          if params[:category_id].present?
-            @category = Spina::Blocks::Category.find(params[:category_id])
-            @blocks = @category.blocks.sorted
+          @block_templates = current_theme.try(:block_templates) || []
+
+          if params[:block_template].present?
+            @current_template = params[:block_template]
+            @blocks = Spina::Blocks::Block.where(block_template: @current_template).sorted
           else
+            @current_template = nil
             @blocks = Spina::Blocks::Block.sorted
           end
-
-          @categories = Spina::Blocks::Category.sorted
-          @block_templates = current_theme.try(:block_templates) || []
         end
 
         def new

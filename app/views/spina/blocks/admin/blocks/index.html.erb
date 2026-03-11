@@ -29,16 +29,16 @@
   <% header.with_navigation do %>
     <nav class="-mb-1 md:-mb-3 mt-4">
       <ul class="inline-flex flex-wrap w-auto rounded-md bg-white">
-        <%= render Spina::UserInterface::TabLinkComponent.new(spina.blocks_admin_blocks_path, active: @category.nil?) do %>
+        <%= render Spina::UserInterface::TabLinkComponent.new(spina.blocks_admin_blocks_path, active: @current_template.nil?) do %>
           <%= heroicon('squares-2x2', class: 'h-4 w-4 mr-1 -ml-1 opacity-75') %>
           <%= t('spina.blocks.all') %>
         <% end %>
 
-        <% @categories.each do |category| %>
+        <% @block_templates.each do |bt| %>
           <%= render Spina::UserInterface::TabLinkComponent.new(
-                spina.blocks_admin_blocks_path(category_id: category.id),
-                active: @category == category) do %>
-            <%= category.label %>
+                spina.blocks_admin_blocks_path(block_template: bt[:name]),
+                active: @current_template == bt[:name].to_s) do %>
+            <%= bt[:title] %>
           <% end %>
         <% end %>
       </ul>
@@ -63,9 +63,6 @@
                 <div class="text-gray-900 font-medium text-sm"><%= block.title %></div>
                 <div class="text-gray-400 text-xs">
                   <%= block.block_template %>
-                  <% if block.category.present? %>
-                    &middot; <%= block.category.label %>
-                  <% end %>
                   <% unless block.active? %>
                     &middot; <span class="text-red-400"><%= t('spina.blocks.inactive') %></span>
                   <% end %>
