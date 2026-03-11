@@ -16,10 +16,10 @@ module Spina
           @block_templates = current_theme.try(:block_templates) || []
 
           if params[:block_template].present?
-            @current_template = params[:block_template]
-            @blocks = Spina::Blocks::Block.where(block_template: @current_template).sorted
+            @current_block_template = params[:block_template]
+            @blocks = Spina::Blocks::Block.where(block_template: @current_block_template).sorted
           else
-            @current_template = nil
+            @current_block_template = nil
             @blocks = Spina::Blocks::Block.sorted
           end
         end
