@@ -34,6 +34,17 @@ module Spina
         end
       end
 
+      initializer 'spina.blocks.importmap', before: 'spina.blocks.register_parts' do
+        Spina.config.importmap.draw do
+          pin_all_from Spina::Blocks::Engine.root.join('app/assets/javascripts/spina/controllers'),
+                       under: 'controllers', to: 'spina/controllers'
+        end
+      end
+
+      initializer 'spina.blocks.assets.precompile' do |app|
+        app.config.assets.precompile += %w[spina/controllers/block_collection_controller.js] if defined?(Sprockets)
+      end
+
       initializer 'spina.blocks.register_parts' do
         config.to_prepare do
           ::Spina::Part.register(
@@ -54,6 +65,7 @@ module Spina
       initializer 'spina.blocks.tailwind_content' do
         ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/views/**/*.*"
         ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/helpers/**/*.*"
+        ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/assets/javascripts/**/*.js"
       end
 
       initializer 'spina.blocks.i18n' do

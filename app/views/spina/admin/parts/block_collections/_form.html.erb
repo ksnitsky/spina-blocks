@@ -1,24 +1,108 @@
-<div class="mt-6">
+<%
+  blocks = Spina::Blocks::Block.active.sorted
+  selected_ids = f.object.block_ids || []
+  field_name = "#{f.object_name}[block_ids][]"
+
+  # Build block_templates title lookup from current theme
+  template_titles = {}
+  if defined?(current_theme) && current_theme.respond_to?(:block_templates)
+    current_theme.block_templates.each do |bt|
+      template_titles[bt[:name].to_s] = bt[:title].to_s
+    end
+  end
+
+  # Build JSON data for Stimulus controller
+  blocks_json = blocks.map { |b|
+    {
+      id: b.id,
+      title: b.title,
+      templateName: b.block_template.to_s,
+      templateTitle: template_titles[b.block_template.to_s] || b.block_template.to_s.titleize
+    }
+  }
+%>
+
+<div class="mt-6"
+     data-controller="block-collection"
+     data-block-collection-blocks-value="<%= blocks_json.to_json %>"
+     data-block-collection-selected-ids-value="<%= selected_ids.to_json %>"
+     data-field-name="<%= field_name %>">
+
   <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
   <% if f.object.hint.present? %>
-    <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
+    <div class="text-gray-400 text-sm mb-2"><%= f.object.hint %></div>
   <% end %>
-  <div class="mt-1">
-    <% blocks = Spina::Blocks::Block.active.sorted %>
-    <% selected_ids = f.object.block_ids || [] %>
-    <div class="space-y-2">
-      <% blocks.each do |block| %>
-        <label class="flex items-center space-x-2 cursor-pointer">
-          <input type="checkbox"
-                 name="<%= f.object_name %>[block_ids][]"
-                 value="<%= block.id %>"
-                 <%= 'checked' if selected_ids.include?(block.id) %>
-                 class="form-checkbox rounded text-spina border-gray-300">
-          <span class="text-sm text-gray-700"><%= block.title %></span>
-          <span class="text-xs text-gray-400">(<%= block.block_template %>)</span>
-        </label>
-      <% end %>
-    </div>
-    <input type="hidden" name="<%= f.object_name %>[block_ids][]" value="">
+
+  <%# Empty state message %>
+  <div data-block-collection-target="emptyMessage"
+       class="text-sm text-gray-400 italic py-3"
+       style="<%= selected_ids.any? ? 'display:none' : '' %>">
+    No blocks selected. Click &ldquo;Add block&rdquo; to get started.
   </div>
+
+  <%# Sortable list of selected blocks (rendered by Stimulus) %>
+  <div data-block-collection-target="list" class="space-y-1 mb-3"></div>
+
+  <%# Hidden fields container (rendered by Stimulus) %>
+  <div data-block-collection-target="hiddenFields"></div>
+
+  <%# Add block button + dropdown %>
+  <div class="relative inline-block">
+    <button type="button"
+            data-action="block-collection#toggleDropdown"
+            data-block-collection-target="addButton"
+            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spina">
+      <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      Add block
+    </button>
+
+    <div data-block-collection-target="dropdown"
+         style="display:none"
+         class="absolute z-10 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
+    </div>
+  </div>
+
+  <%# ===== Templates for Stimulus controller ===== %>
+
+  <%# Selected block list item %>
+  <template data-block-collection-target="listItemTemplate">
+    <div class="flex items-center bg-white border border-gray-200 rounded-md px-3 py-2 shadow-sm group" data-block-id="">
+      <button type="button" data-sortable-handle class="mr-2 text-gray-300 hover:text-gray-500 cursor-grab" title="Drag to reorder">
+        <svg class="w-4 h-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+          <path d="M432 288H16c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16h416c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16zm0-112H16c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16h416c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16z"/>
+        </svg>
+      </button>
+      <div class="flex-1 min-w-0">
+        <span class="text-sm font-medium text-gray-800 truncate" data-role="title"></span>
+        <span class="ml-2 text-xs text-gray-400" data-role="template-label"></span>
+      </div>
+      <button type="button" class="ml-2 text-gray-300 hover:text-red-500 transition-colors"
+              data-action="block-collection#remove" data-block-id="" title="Remove">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </template>
+
+  <%# Dropdown group header %>
+  <template data-block-collection-target="groupHeaderTemplate">
+    <div class="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider" data-role="group-name"></div>
+  </template>
+
+  <%# Dropdown option (available block) %>
+  <template data-block-collection-target="dropdownOptionTemplate">
+    <button type="button"
+            class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+            data-action="block-collection#add" data-block-id="">
+      <span data-role="title"></span>
+    </button>
+  </template>
+
+  <%# Dropdown empty state %>
+  <template data-block-collection-target="dropdownEmptyTemplate">
+    <div class="px-3 py-2 text-sm text-gray-400 italic">All blocks added</div>
+  </template>
 </div>
