@@ -1,4 +1,6 @@
-$:.push File.expand_path('lib', __dir__)
+# frozen_string_literal: true
+
+$LOAD_PATH.push File.expand_path('lib', __dir__)
 
 require 'spina/blocks/version'
 
@@ -18,4 +20,6 @@ Gem::Specification.new do |gem|
   gem.files = Dir['{app,config,db,lib}/**/*'] + ['Rakefile', 'README.md']
 
   gem.add_dependency 'spina', '>= 2.0'
+
+  gem.metadata['rubygems_mfa_required'] = 'true'
 end

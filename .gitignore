@@ -1,0 +1,25 @@
+# Bundler
+/.bundle/
+Gemfile.lock
+
+# Gem build artifacts
+/*.gem
+/pkg/
+
+# IDE / Editor
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# RSpec / test artifacts
+/coverage/
+/spec/reports/
+
+# Environment
+.env
