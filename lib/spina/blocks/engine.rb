@@ -8,6 +8,20 @@ module Spina
           plugin.name = 'blocks'
           plugin.namespace = 'blocks'
         end
+
+        ::Spina::Theme.class_eval do
+          attr_accessor :block_templates, :block_categories
+
+          unless method_defined?(:initialize_without_blocks)
+            alias_method :initialize_without_blocks, :initialize
+
+            def initialize
+              initialize_without_blocks
+              @block_templates = []
+              @block_categories = []
+            end
+          end
+        end
       end
 
       initializer 'spina.blocks.append_migrations' do |app|
@@ -24,22 +38,6 @@ module Spina
             Spina::Parts::BlockReference,
             Spina::Parts::BlockCollection
           )
-        end
-      end
-
-      initializer 'spina.blocks.extend_theme' do
-        ::Spina::Theme.class_eval do
-          attr_accessor :block_templates, :block_categories
-
-          unless method_defined?(:initialize_without_blocks)
-            alias_method :initialize_without_blocks, :initialize
-
-            def initialize
-              initialize_without_blocks
-              @block_templates = []
-              @block_categories = []
-            end
-          end
         end
       end
 
@@ -61,8 +59,8 @@ module Spina
       end
 
       initializer 'spina.blocks.helpers' do
-        ActiveSupport.on_load(:action_view) do
-          include Spina::Blocks::BlocksHelper
+        config.to_prepare do
+          ActionView::Base.include Spina::Blocks::BlocksHelper
         end
       end
     end
