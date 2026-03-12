@@ -21,5 +21,10 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'spina', '>= 2.0'
 
+  gem.add_development_dependency 'database_cleaner-active_record'
+  gem.add_development_dependency 'factory_bot_rails'
+  gem.add_development_dependency 'pg'
+  gem.add_development_dependency 'rspec-rails'
+
   gem.metadata['rubygems_mfa_required'] = 'true'
 end
