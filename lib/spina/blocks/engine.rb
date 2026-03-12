@@ -54,11 +54,10 @@ module Spina
         end
       end
 
-      initializer 'spina.blocks.extend_page' do
+      initializer 'spina.blocks.extend_models' do
         config.to_prepare do
-          Dir.glob(Spina::Blocks::Engine.root.join('app/overrides/**/*.rb')).sort.each do |override|
-            load override
-          end
+          Spina::Page.include Spina::Blocks::PageExtension unless Spina::Page < Spina::Blocks::PageExtension
+          Spina::Account.include Spina::Blocks::AccountExtension unless Spina::Account < Spina::Blocks::AccountExtension
         end
       end
 
