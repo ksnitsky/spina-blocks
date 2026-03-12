@@ -1,5 +1,7 @@
 # Spina Blocks
 
+> ⚠️ **Warning**: This plugin is not production-ready and may cause issues. Use at your own risk.
+
 A plugin for [Spina CMS](https://www.spinacms.com) that adds reusable block components. Blocks are independent content units with their own templates and fields that can be assembled into pages.
 
 ## Installation
