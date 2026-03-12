@@ -20,6 +20,10 @@ Thumbs.db
 # RSpec / test artifacts
 /coverage/
 /spec/reports/
+/spec/dummy/db/schema.rb
+/spec/dummy/db/test.sqlite3*
+/spec/dummy/log/*.log
+/spec/dummy/tmp/
 
 # Environment
 .env
