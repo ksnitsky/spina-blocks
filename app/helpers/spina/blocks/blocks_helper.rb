@@ -49,7 +49,7 @@ module Spina
 
       def render_block_fallback(block)
         content_tag(:div, class: "spina-block spina-block--#{block.block_template}") do
-          content_tag(:p, block.title, class: "spina-block__title")
+          content_tag(:p, block.name, class: "spina-block__title")
         end
       end
     end

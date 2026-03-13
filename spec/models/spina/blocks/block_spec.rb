@@ -8,10 +8,10 @@ RSpec.describe(Spina::Blocks::Block, type: :model) do
   describe "validations" do
     it { is_expected.to(be_valid) }
 
-    it "requires a title" do
-      block.title = nil
+    it "requires a name" do
+      block.name = nil
       expect(block).not_to(be_valid)
-      expect(block.errors[:title]).to(include("can't be blank"))
+      expect(block.errors[:name]).to(include("can't be blank"))
     end
 
     it "requires a block_template" do
@@ -55,8 +55,8 @@ RSpec.describe(Spina::Blocks::Block, type: :model) do
   end
 
   describe "#to_s" do
-    it "returns the title" do
-      block.title = "My Block"
+    it "returns the name" do
+      block.name = "My Block"
       expect(block.to_s).to(eq("My Block"))
     end
   end

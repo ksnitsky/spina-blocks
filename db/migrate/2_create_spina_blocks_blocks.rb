@@ -10,7 +10,6 @@ class CreateSpinaBlocksBlocks < ActiveRecord::Migration[7.0]
     return if connection.table_exists?(:spina_blocks_blocks)
 
     create_table(:spina_blocks_blocks) do |t|
-      t.string(:title, null: false)
       t.string(:name, null: false)
       t.string(:block_template, null: false)
       t.references(:category, foreign_key: { to_table: :spina_blocks_categories }, null: true)

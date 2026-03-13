@@ -15,7 +15,7 @@
   blocks_json = blocks.map { |b|
     {
       id: b.id,
-      title: b.title,
+      name: b.name,
       templateName: b.block_template.to_s,
       templateTitle: template_titles[b.block_template.to_s] || b.block_template.to_s.titleize
     }

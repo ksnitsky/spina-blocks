@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_13_114447) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_13_150905) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -97,10 +97,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_114447) do
     t.bigint "category_id"
     t.datetime "created_at", null: false
     t.json "json_attributes"
+    t.string "name", null: false
     t.integer "position", default: 0
-    t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_spina_blocks_blocks_on_category_id"
+    t.index ["name"], name: "index_spina_blocks_blocks_on_name", unique: true
   end
 
   create_table "spina_blocks_categories", force: :cascade do |t|

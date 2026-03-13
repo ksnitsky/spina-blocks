@@ -18,7 +18,7 @@ export default class extends Controller {
 
   static get values() {
     return {
-      blocks: Array, // [{id, title, templateName, templateTitle}]
+      blocks: Array, // [{id, name, templateName, templateTitle}]
       selectedIds: Array, // [id, id, ...]
     };
   }
@@ -150,7 +150,7 @@ export default class extends Controller {
             this.dropdownOptionTemplateTarget.content.cloneNode(true);
           const button = option.querySelector("button");
           button.dataset.blockId = block.id;
-          option.querySelector("[data-role='title']").textContent = block.title;
+          option.querySelector("[data-role='title']").textContent = block.name;
           this.dropdownTarget.appendChild(option);
         });
       });
@@ -169,7 +169,7 @@ export default class extends Controller {
     const fragment = this.listItemTemplateTarget.content.cloneNode(true);
     const root = fragment.querySelector("[data-block-id]");
     root.dataset.blockId = block.id;
-    fragment.querySelector("[data-role='title']").textContent = block.title;
+    fragment.querySelector("[data-role='title']").textContent = block.name;
     fragment.querySelector("[data-role='template-label']").textContent =
       "(" + (block.templateTitle || block.templateName) + ")";
     fragment.querySelector(

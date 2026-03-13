@@ -46,7 +46,7 @@ module Spina
 
         def edit
           add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path, class: "text-gray-400")
-          add_breadcrumb(@block.title)
+          add_breadcrumb(@block.name)
         end
 
         def edit_content
@@ -63,7 +63,7 @@ module Spina
           else
             add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path, class: "text-gray-400")
             Mobility.locale = I18n.locale
-            add_breadcrumb(@block.title)
+            add_breadcrumb(@block.name)
             flash.now[:error] = I18n.t("spina.blocks.couldnt_be_saved")
             render(:edit, status: :unprocessable_entity)
           end

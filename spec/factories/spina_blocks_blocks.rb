@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :spina_blocks_block, class: "Spina::Blocks::Block" do
-    sequence(:title) { |n| "Block #{n}" }
+    sequence(:name) { |n| "Block #{n}" }
     block_template { "text" }
     active { true }
     position { 0 }
