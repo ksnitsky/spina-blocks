@@ -133,10 +133,10 @@ Then in your template:
 
 ## Models
 
-| Model | Description |
-|-------|-------------|
-| `Spina::Blocks::Block` | Reusable content block with template and parts |
-| `Spina::Blocks::Category` | Block category for organizing the library |
+| Model                      | Description                                        |
+| -------------------------- | -------------------------------------------------- |
+| `Spina::Blocks::Block`     | Reusable content block with template and parts     |
+| `Spina::Blocks::Category`  | Block category for organizing the library          |
 | `Spina::Blocks::PageBlock` | Join model linking blocks to pages (with position) |
 
 ## Admin interface
@@ -150,13 +150,13 @@ The plugin adds:
 
 ## Helper methods
 
-| Helper | Description |
-|--------|-------------|
-| `render_blocks(page)` | Render all blocks attached to a page via PageBlocks |
-| `render_block(block)` | Render a single block using its template partial |
-| `block_content(block, :part_name)` | Access a block's content |
-| `block_has_content?(block, :part_name)` | Check if a block has content |
+| Helper                                  | Description                                         |
+| --------------------------------------- | --------------------------------------------------- |
+| `render_blocks(page)`                   | Render all blocks attached to a page via PageBlocks |
+| `render_block(block)`                   | Render a single block using its template partial    |
+| `block_content(block, :part_name)`      | Access a block's content                            |
+| `block_has_content?(block, :part_name)` | Check if a block has content                        |
 
 ## License
 
-MIT
+The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
