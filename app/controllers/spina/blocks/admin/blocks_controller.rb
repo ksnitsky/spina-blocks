@@ -7,13 +7,13 @@ module Spina
         admin_section :content
 
         before_action :set_locale
-        before_action :set_block, only: %i[edit edit_content update destroy]
-        before_action :set_tabs, only: %i[edit update]
+        before_action :set_block, only: [:edit, :edit_content, :update, :destroy]
+        before_action :set_tabs, only: [:edit, :update]
 
         helper ::Spina::Admin::PagesHelper
 
         def index
-          add_breadcrumb I18n.t('spina.blocks.title'), spina.blocks_admin_blocks_path
+          add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path)
 
           @block_templates = current_theme.try(:block_templates) || []
 
@@ -34,19 +34,19 @@ module Spina
         def create
           @block = Spina::Blocks::Block.new(block_params)
           if @block.save
-            redirect_to spina.edit_blocks_admin_block_url(@block)
+            redirect_to(spina.edit_blocks_admin_block_url(@block))
           else
             @block_templates = current_theme.try(:block_templates) || []
-            render turbo_stream: turbo_stream.update(
+            render(turbo_stream: turbo_stream.update(
               helpers.dom_id(@block, :new_block_form),
-              partial: 'new_block_form'
-            )
+              partial: "new_block_form",
+            ))
           end
         end
 
         def edit
-          add_breadcrumb I18n.t('spina.blocks.title'), spina.blocks_admin_blocks_path, class: 'text-gray-400'
-          add_breadcrumb @block.title
+          add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path, class: "text-gray-400")
+          add_breadcrumb(@block.title)
         end
 
         def edit_content
@@ -58,14 +58,14 @@ module Spina
         def update
           Mobility.locale = @locale
           if @block.update(block_params)
-            flash[:success] = I18n.t('spina.blocks.saved')
-            redirect_to spina.edit_blocks_admin_block_url(@block, params: { locale: @locale })
+            flash[:success] = I18n.t("spina.blocks.saved")
+            redirect_to(spina.edit_blocks_admin_block_url(@block, params: { locale: @locale }))
           else
-            add_breadcrumb I18n.t('spina.blocks.title'), spina.blocks_admin_blocks_path, class: 'text-gray-400'
+            add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path, class: "text-gray-400")
             Mobility.locale = I18n.locale
-            add_breadcrumb @block.title
-            flash.now[:error] = I18n.t('spina.blocks.couldnt_be_saved')
-            render :edit, status: :unprocessable_entity
+            add_breadcrumb(@block.title)
+            flash.now[:error] = I18n.t("spina.blocks.couldnt_be_saved")
+            render(:edit, status: :unprocessable_entity)
           end
         end
 
@@ -74,14 +74,14 @@ module Spina
             Spina::Blocks::Block.where(id: id).update_all(position: index + 1)
           end
 
-          flash.now[:info] = I18n.t('spina.blocks.sorting_saved')
+          flash.now[:info] = I18n.t("spina.blocks.sorting_saved")
           render_flash
         end
 
         def destroy
-          flash[:info] = I18n.t('spina.blocks.deleted')
+          flash[:info] = I18n.t("spina.blocks.deleted")
           @block.destroy
-          redirect_to spina.blocks_admin_blocks_url
+          redirect_to(spina.blocks_admin_blocks_url)
         end
 
         private
@@ -95,7 +95,7 @@ module Spina
         end
 
         def set_tabs
-          @tabs = %w[block_content block_settings]
+          @tabs = ["block_content", "block_settings"]
         end
 
         def block_params

@@ -18,8 +18,8 @@ module Spina
 
         theme_config.block_categories.each_with_index do |category, index|
           Spina::Blocks::Category.where(name: category[:name])
-                                 .first_or_create(label: category[:label])
-                                 .update(label: category[:label], position: index)
+            .first_or_create(label: category[:label])
+            .update(label: category[:label], position: index)
         end
       end
     end

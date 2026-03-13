@@ -13,7 +13,7 @@ module Spina
           block = page_block.block
           next unless block&.active?
 
-          concat render_block(block)
+          concat(render_block(block))
         end
       end
 
@@ -28,7 +28,7 @@ module Spina
         partial_path = "#{theme_name}/blocks/#{block.block_template}"
 
         if lookup_context.exists?(partial_path, [], true)
-          render partial: partial_path, locals: { block: block }
+          render(partial: partial_path, locals: { block: block })
         else
           render_block_fallback(block)
         end
@@ -49,7 +49,7 @@ module Spina
 
       def render_block_fallback(block)
         content_tag(:div, class: "spina-block spina-block--#{block.block_template}") do
-          content_tag(:p, block.title, class: 'spina-block__title')
+          content_tag(:p, block.title, class: "spina-block__title")
         end
       end
     end
