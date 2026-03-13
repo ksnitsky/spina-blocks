@@ -16,8 +16,14 @@ Run:
 
 ```bash
 bundle install
-rails db:migrate
+rails generate spina:blocks:install
 ```
+
+This copies the plugin's migrations into your app and runs `db:migrate`.
+
+## Upgrading
+
+If you are upgrading from a version that used timestamp migrations (`20250101000001`–`20250101000004`), the new migrations will detect the old version numbers in your `schema_migrations` table, clean them up automatically, and skip any tables that already exist. No manual intervention is needed.
 
 ## Configuration
 

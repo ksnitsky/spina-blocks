@@ -26,14 +26,6 @@ module Spina
         end
       end
 
-      initializer 'spina.blocks.append_migrations' do |app|
-        unless app.root.to_s.match?(root.to_s)
-          config.paths['db/migrate'].expanded.each do |expanded_path|
-            app.config.paths['db/migrate'] << expanded_path
-          end
-        end
-      end
-
       initializer 'spina.blocks.importmap', before: 'spina.blocks.register_parts' do
         Spina.config.importmap.draw do
           pin_all_from Spina::Blocks::Engine.root.join('app/assets/javascripts/spina/controllers'),

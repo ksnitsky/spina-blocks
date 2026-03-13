@@ -14,15 +14,8 @@ require 'factory_bot_rails'
 # Load support files
 Dir[File.join(__dir__, 'support', '**', '*.rb')].each { |f| require f }
 
-# Set up migration paths for engine testing.
-# Replace the default relative path with absolute engine paths to avoid
-# duplicates when running from the gem root directory.
-ActiveRecord::Migrator.migrations_paths.replace([
-                                                  Spina::Engine.root.join('db/migrate').to_s,
-                                                  Spina::Blocks::Engine.root.join('db/migrate').to_s
-                                                ])
-
-# Run pending migrations on the dummy app
+# Point to the dummy app's migrations (Spina migrations are pre-copied there)
+ActiveRecord::Migrator.migrations_paths = [File.expand_path('dummy/db/migrate', __dir__)]
 ActiveRecord::Migration.maintain_test_schema!
 
 RSpec.configure do |config|
