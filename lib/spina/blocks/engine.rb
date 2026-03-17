@@ -54,6 +54,14 @@ module Spina
         end
       end
 
+      initializer "spina.blocks.search" do
+        config.to_prepare do
+          if defined?(Spina::Pro::Search)
+            Spina::Blocks::Block.include(Spina::Blocks::SearchExtension) unless Spina::Blocks::Block < Spina::Blocks::SearchExtension
+          end
+        end
+      end
+
       initializer "spina.blocks.tailwind_content" do
         ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/views/**/*.*"
         ::Spina.config.tailwind_content << "#{Spina::Blocks::Engine.root}/app/helpers/**/*.*"
