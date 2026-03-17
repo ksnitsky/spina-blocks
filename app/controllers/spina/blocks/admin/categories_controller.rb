@@ -12,18 +12,18 @@ module Spina
 
         def edit
           @category = Spina::Blocks::Category.find(params[:id])
-          add_breadcrumb I18n.t('spina.blocks.title'), spina.blocks_admin_blocks_path, class: 'text-gray-400'
-          add_breadcrumb @category.label
+          add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path, class: "text-gray-400")
+          add_breadcrumb(@category.label)
         end
 
         def update
           @category = Spina::Blocks::Category.find(params[:id])
           if @category.update(category_params)
-            flash[:success] = I18n.t('spina.block_categories.saved')
-            redirect_to spina.blocks_admin_blocks_url
+            flash[:success] = I18n.t("spina.block_categories.saved")
+            redirect_to(spina.blocks_admin_blocks_url)
           else
-            flash.now[:error] = I18n.t('spina.block_categories.couldnt_be_saved')
-            render :edit, status: :unprocessable_entity
+            flash.now[:error] = I18n.t("spina.block_categories.couldnt_be_saved")
+            render(:edit, status: :unprocessable_entity)
           end
         end
 

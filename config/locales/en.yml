@@ -5,6 +5,7 @@ en:
       new: "New block"
       create: "Create block"
       save: "Save block"
+      edit: "Edit block"
       saved: "Block saved"
       deleted: "Block deleted"
       delete: "Delete block"

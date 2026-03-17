@@ -35,8 +35,5 @@ jobs:
           ruby-version: "3.4"
           bundler-cache: true
 
-      - name: Prepare test database
-        run: bundle exec rake db:test:prepare
-
       - name: Run tests
-        run: bundle exec rspec
+        run: bundle exec rake

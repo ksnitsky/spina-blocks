@@ -1,0 +1,23 @@
+<%= link_to spina.edit_blocks_admin_block_path(block), class: "block px-2 leading-tight", data: {selected: index.zero?, search_target: "result", action: "mouseenter->search#select", turbo_frame: "_top"} do %>
+  <div class="flex items-center justify-between w-full px-4 py-3 rounded-md bg-gray-400 bg-opacity-0 <%= 'bg-opacity-25' if index.zero? %>" data-selected-class="bg-opacity-25">
+    <div>
+      <div class="font-medium flex items-center">
+        <%= block.name %>
+        <% unless block.active? %>
+          <div class="opacity-50 text-xs ml-1">(inactive)</div>
+        <% end %>
+        <div class="flex items-center ml-2 text-xs px-1.5 py-0.5 space-x-1 bg-gray-900 bg-opacity-5 rounded">
+          <%= heroicon('cube', style: :outline, class: 'w-3 h-3 opacity-50') %>
+          <div class="opacity-75"><%= block.block_template %></div>
+        </div>
+      </div>
+      <% if block.category %>
+        <div class="opacity-50 text-xs"><%= block.category.label %></div>
+      <% end %>
+    </div>
+
+    <div class="opacity-0 <%= 'opacity-100' if index.zero? %>" data-selected-class="opacity-100">
+      <%= heroicon('arrow-narrow-right', style: :solid, class: 'w-5 h-5 text-gray-600') %>
+    </div>
+  </div>
+<% end %>

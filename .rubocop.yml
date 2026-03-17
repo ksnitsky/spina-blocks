@@ -1,30 +1,106 @@
+inherit_gem:
+  rubocop-shopify: rubocop.yml
+
+plugins:
+  - rubocop-rspec
+
+inherit_mode:
+  merge:
+    - Exclude
+
 AllCops:
   NewCops: enable
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.2
   Exclude:
-    - 'vendor/**/*'
-    - 'node_modules/**/*'
+    - "vendor/**/*"
+    - "node_modules/**/*"
+    - "spec/dummy/db/schema.rb"
+    - "spec/dummy/db/migrate/**/*"
 
-Style/Documentation:
-  Enabled: false
-
+# Hyphenated gem name doesn't follow snake_case convention
 Naming/FileName:
   Exclude:
-    - 'lib/spina-blocks.rb'
+    - "lib/spina-blocks.rb"
+
+# --- Overrides: enable cops that Shopify disables ---
+
+# Enforce double quotes
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+# Trailing commas in multiline expressions
+Style/TrailingCommaInArguments:
+  Enabled: true
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: consistent_comma
+
+# frozen_string_literal comment
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always_true
+
+# Modern hash syntax
+Style/HashSyntax:
+  Enabled: true
+
+# Remove redundant returns
+Style/RedundantReturn:
+  Enabled: true
+
+# Prefer brackets for word/symbol arrays
+Style/WordArray:
+  Enabled: true
+  EnforcedStyle: brackets
+
+Style/SymbolArray:
+  Enabled: true
+  EnforcedStyle: brackets
+
+# --- Metrics relaxation for gem ---
 
 Metrics/AbcSize:
   Exclude:
-    - 'app/controllers/**/*'
+    - "app/controllers/**/*"
+    - "db/migrate/**/*"
 
 Metrics/MethodLength:
   Exclude:
-    - 'app/controllers/**/*'
-    - 'db/migrate/**/*'
+    - "app/controllers/**/*"
+    - "db/migrate/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "db/migrate/**/*"
+    - "*.gemspec"
 
 Metrics/CyclomaticComplexity:
   Exclude:
-    - 'app/helpers/**/*'
+    - "app/helpers/**/*"
 
 Metrics/PerceivedComplexity:
   Exclude:
-    - 'app/helpers/**/*'
+    - "app/helpers/**/*"
+
+# --- RSpec ---
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Max: 4

@@ -6,7 +6,7 @@
   <div class="mt-1">
     <% blocks = Spina::Blocks::Block.active.sorted %>
     <%= f.select :block_id,
-          blocks.map { |b| [b.title, b.id] },
+          blocks.map { |b| [b.name, b.id] },
           {include_blank: t('spina.blocks.select_block')},
           class: "form-select text-sm w-full shadow-xs" %>
   </div>
