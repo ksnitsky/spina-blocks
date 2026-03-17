@@ -7,8 +7,8 @@ module Spina
         admin_section :content
 
         before_action :set_locale
-        before_action :set_block, only: [:edit, :edit_content, :update, :destroy]
-        before_action :set_tabs, only: [:edit, :update]
+        before_action :set_block, only: [:edit, :edit_content, :edit_modal, :update, :destroy]
+        before_action :set_tabs, only: [:edit, :edit_modal, :update]
 
         helper ::Spina::Admin::PagesHelper
 
@@ -55,11 +55,21 @@ module Spina
           end&.dig(:parts) || []
         end
 
+        def edit_modal
+        end
+
         def update
           Mobility.locale = @locale
           if @block.update(block_params)
-            flash[:success] = I18n.t("spina.blocks.saved")
-            redirect_to(spina.edit_blocks_admin_block_url(@block, params: { locale: @locale }))
+            if params[:modal]
+              render(turbo_stream: turbo_stream.update("modal", ""))
+            else
+              flash[:success] = I18n.t("spina.blocks.saved")
+              redirect_to(spina.edit_blocks_admin_block_url(@block, params: { locale: @locale }))
+            end
+          elsif params[:modal]
+            flash.now[:error] = I18n.t("spina.blocks.couldnt_be_saved")
+            render(:edit_modal, status: :unprocessable_entity)
           else
             add_breadcrumb(I18n.t("spina.blocks.title"), spina.blocks_admin_blocks_path, class: "text-gray-400")
             Mobility.locale = I18n.locale

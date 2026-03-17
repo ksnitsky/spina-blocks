@@ -20,6 +20,7 @@ export default class extends Controller {
     return {
       blocks: Array, // [{id, name, templateName, templateTitle}]
       selectedIds: Array, // [id, id, ...]
+      editUrl: String, // base edit_modal URL with __ID__ placeholder
     };
   }
 
@@ -175,6 +176,12 @@ export default class extends Controller {
     fragment.querySelector(
       "[data-action='block-collection#remove']",
     ).dataset.blockId = block.id;
+
+    const editLink = fragment.querySelector("[data-role='edit-link']");
+    if (editLink && this.hasEditUrlValue && this.editUrlValue) {
+      editLink.href = this.editUrlValue.replace("__ID__", block.id);
+    }
+
     return fragment;
   }
 

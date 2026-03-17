@@ -6,6 +6,7 @@ Spina::Engine.routes.draw do
       resources :blocks do
         member do
           get :edit_content
+          get :edit_modal
         end
 
         collection do
