@@ -13,6 +13,7 @@ export default class extends Controller {
       "groupHeaderTemplate",
       "dropdownOptionTemplate",
       "dropdownEmptyTemplate",
+      "newBlockTemplate",
     ];
   }
 
@@ -21,6 +22,7 @@ export default class extends Controller {
       blocks: Array, // [{id, name, templateName, templateTitle}]
       selectedIds: Array, // [id, id, ...]
       editUrl: String, // base edit_modal URL with __ID__ placeholder
+      newUrl: String, // URL for new block modal
     };
   }
 
@@ -127,34 +129,43 @@ export default class extends Controller {
     if (availableBlocks.length === 0) {
       const empty = this.dropdownEmptyTemplateTarget.content.cloneNode(true);
       this.dropdownTarget.appendChild(empty);
-      return;
+    } else {
+      // Group by templateTitle
+      const groups = {};
+      availableBlocks.forEach((b) => {
+        const key = b.templateTitle || b.templateName || "Other";
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(b);
+      });
+
+      Object.keys(groups)
+        .sort()
+        .forEach((groupName) => {
+          const header = this.groupHeaderTemplateTarget.content.cloneNode(true);
+          header.querySelector("[data-role='group-name']").textContent =
+            groupName;
+          this.dropdownTarget.appendChild(header);
+
+          groups[groupName].forEach((block) => {
+            const option =
+              this.dropdownOptionTemplateTarget.content.cloneNode(true);
+            const button = option.querySelector("button");
+            button.dataset.blockId = block.id;
+            option.querySelector("[data-role='title']").textContent = block.name;
+            this.dropdownTarget.appendChild(option);
+          });
+        });
     }
 
-    // Group by templateTitle
-    const groups = {};
-    availableBlocks.forEach((b) => {
-      const key = b.templateTitle || b.templateName || "Other";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(b);
-    });
-
-    Object.keys(groups)
-      .sort()
-      .forEach((groupName) => {
-        const header = this.groupHeaderTemplateTarget.content.cloneNode(true);
-        header.querySelector("[data-role='group-name']").textContent =
-          groupName;
-        this.dropdownTarget.appendChild(header);
-
-        groups[groupName].forEach((block) => {
-          const option =
-            this.dropdownOptionTemplateTarget.content.cloneNode(true);
-          const button = option.querySelector("button");
-          button.dataset.blockId = block.id;
-          option.querySelector("[data-role='title']").textContent = block.name;
-          this.dropdownTarget.appendChild(option);
-        });
-      });
+    // "New block" link at the bottom of the dropdown
+    if (this.hasNewBlockTemplateTarget && this.hasNewUrlValue && this.newUrlValue) {
+      const newBlock = this.newBlockTemplateTarget.content.cloneNode(true);
+      const link = newBlock.querySelector("[data-role='new-block-link']");
+      if (link) {
+        link.href = this.newUrlValue;
+      }
+      this.dropdownTarget.appendChild(newBlock);
+    }
   }
 
   renderEmptyMessage() {

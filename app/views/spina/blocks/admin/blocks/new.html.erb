@@ -1,3 +1,7 @@
 <%= render(Spina::UserInterface::ModalComponent.new) do %>
-  <%= render 'new_block_form' %>
+  <% if @modal %>
+    <%= render 'new_block_modal_form' %>
+  <% else %>
+    <%= render 'new_block_form' %>
+  <% end %>
 <% end %>

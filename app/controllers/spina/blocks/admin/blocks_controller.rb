@@ -29,18 +29,31 @@ module Spina
         def new
           @block_templates = current_theme.try(:block_templates) || []
           @block = Spina::Blocks::Block.new(block_template: params[:block_template])
+          @modal = params[:modal]
         end
 
         def create
           @block = Spina::Blocks::Block.new(block_params)
           if @block.save
-            redirect_to(spina.edit_blocks_admin_block_url(@block))
+            if params[:modal]
+              redirect_to(spina.edit_modal_blocks_admin_block_url(@block))
+            else
+              redirect_to(spina.edit_blocks_admin_block_url(@block))
+            end
           else
             @block_templates = current_theme.try(:block_templates) || []
-            render(turbo_stream: turbo_stream.update(
-              helpers.dom_id(@block, :new_block_form),
-              partial: "new_block_form",
-            ))
+            if params[:modal]
+              @modal = true
+              render(turbo_stream: turbo_stream.update(
+                helpers.dom_id(@block, :new_block_modal_form),
+                partial: "new_block_modal_form",
+              ))
+            else
+              render(turbo_stream: turbo_stream.update(
+                helpers.dom_id(@block, :new_block_form),
+                partial: "new_block_form",
+              ))
+            end
           end
         end
 

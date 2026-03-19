@@ -27,6 +27,7 @@
      data-block-collection-blocks-value="<%= blocks_json.to_json %>"
      data-block-collection-selected-ids-value="<%= selected_ids.to_json %>"
      data-block-collection-edit-url-value="<%= spina.edit_modal_blocks_admin_block_path("__ID__") %>"
+     data-block-collection-new-url-value="<%= spina.new_blocks_admin_block_path(modal: 1) %>"
      data-field-name="<%= field_name %>">
 
   <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
@@ -111,5 +112,18 @@
   <%# Dropdown empty state %>
   <template data-block-collection-target="dropdownEmptyTemplate">
     <div class="px-3 py-2 text-sm text-gray-400 italic">All blocks added</div>
+  </template>
+
+  <%# Dropdown "New block" link %>
+  <template data-block-collection-target="newBlockTemplate">
+    <div class="border-t border-gray-200 mt-1 pt-1">
+      <a class="w-full text-left px-3 py-2 text-sm text-spina-primary hover:bg-gray-100 flex items-center font-medium"
+         href="" data-turbo-frame="modal" data-role="new-block-link">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <%= t('spina.blocks.new') %>
+      </a>
+    </div>
   </template>
 </div>
