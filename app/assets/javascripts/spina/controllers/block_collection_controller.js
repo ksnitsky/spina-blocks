@@ -2,6 +2,13 @@ import { Controller } from "@hotwired/stimulus";
 import Sortable from "libraries/sortablejs";
 
 export default class extends Controller {
+  #searchQuery = "";
+  #outsideClickHandler = null;
+  #modalWasOpen = false;
+  #modalObserver = null;
+  #scrollHandler = null;
+  #scrollTimeout = null;
+
   static get targets() {
     return [
       "list",
@@ -39,14 +46,21 @@ export default class extends Controller {
       onEnd: this.reorderHiddenFields.bind(this),
     });
     this.render();
-    this._observeModal();
+    this.#observeModal();
   }
 
   disconnect() {
     if (this.sortable) this.sortable.destroy();
-    if (this._modalObserver) {
-      this._modalObserver.disconnect();
-      this._modalObserver = null;
+    if (this.#modalObserver) {
+      this.#modalObserver.disconnect();
+      this.#modalObserver = null;
+    }
+    if (this.#scrollHandler) {
+      window.removeEventListener("scroll", this.#scrollHandler, true);
+      window.removeEventListener("resize", this.#scrollHandler);
+      clearTimeout(this.#scrollTimeout);
+      this.#scrollHandler = null;
+      this.#scrollTimeout = null;
     }
   }
 
@@ -58,7 +72,7 @@ export default class extends Controller {
     if (this.selectedIdsValue.indexOf(id) !== -1) return;
 
     this.selectedIdsValue = this.selectedIdsValue.concat([id]);
-    this._searchQuery = "";
+    this.#searchQuery = "";
     if (this.hasSearchInputTarget) {
       this.searchInputTarget.value = "";
     }
@@ -74,13 +88,13 @@ export default class extends Controller {
   }
 
   onSearchInput(event) {
-    this._searchQuery = event.target.value;
+    this.#searchQuery = event.target.value;
     this.renderDropdown();
     this.openDropdown();
   }
 
   onSearchFocus() {
-    this._searchQuery = this.hasSearchInputTarget
+    this.#searchQuery = this.hasSearchInputTarget
       ? this.searchInputTarget.value
       : "";
     this.renderDropdown();
@@ -88,7 +102,11 @@ export default class extends Controller {
   }
 
   closeOnOutsideClick(event) {
-    if (!this.element.contains(event.target)) {
+    const clickedInsideSearch =
+      this.hasSearchInputTarget && this.searchInputTarget.contains(event.target);
+    const clickedInsideDropdown = this.dropdownTarget.contains(event.target);
+
+    if (!clickedInsideSearch && !clickedInsideDropdown) {
       this.closeDropdown();
     }
   }
@@ -138,7 +156,7 @@ export default class extends Controller {
     });
 
     // Filter by search query
-    const query = (this._searchQuery || "").toLowerCase().trim();
+    const query = this.#searchQuery.toLowerCase().trim();
     if (query) {
       availableBlocks = availableBlocks.filter((b) => {
         return b.name.toLowerCase().includes(query);
@@ -179,13 +197,22 @@ export default class extends Controller {
     }
 
     // "New block" link at the bottom of the dropdown
-    if (this.hasNewBlockTemplateTarget && this.hasNewUrlValue && this.newUrlValue) {
+    if (
+      this.hasNewBlockTemplateTarget &&
+      this.hasNewUrlValue &&
+      this.newUrlValue
+    ) {
       const newBlock = this.newBlockTemplateTarget.content.cloneNode(true);
       const link = newBlock.querySelector("[data-role='new-block-link']");
       if (link) {
         link.href = this.newUrlValue;
       }
       this.dropdownTarget.appendChild(newBlock);
+    }
+
+    // Reposition if dropdown is currently visible
+    if (this.dropdownTarget.style.display !== "none") {
+      this.#positionDropdown();
     }
   }
 
@@ -229,20 +256,42 @@ export default class extends Controller {
   }
 
   openDropdown() {
+    if (this.dropdownTarget.style.display === "block") {
+      // Already open, just reposition
+      this.#positionDropdown();
+      return;
+    }
+
     this.dropdownTarget.style.display = "block";
-    this._outsideClickHandler = this.closeOnOutsideClick.bind(this);
-    document.addEventListener("click", this._outsideClickHandler, true);
+    this.#positionDropdown();
+
+    this.#outsideClickHandler = this.closeOnOutsideClick.bind(this);
+    document.addEventListener("click", this.#outsideClickHandler, true);
+
+    this.#scrollHandler = () => {
+      clearTimeout(this.#scrollTimeout);
+      this.#scrollTimeout = setTimeout(() => this.#positionDropdown(), 100);
+    };
+    window.addEventListener("scroll", this.#scrollHandler, true);
+    window.addEventListener("resize", this.#scrollHandler);
   }
 
   closeDropdown() {
     this.dropdownTarget.style.display = "none";
-    this._searchQuery = "";
+    this.#searchQuery = "";
     if (this.hasSearchInputTarget) {
       this.searchInputTarget.value = "";
     }
-    if (this._outsideClickHandler) {
-      document.removeEventListener("click", this._outsideClickHandler, true);
-      this._outsideClickHandler = null;
+    if (this.#outsideClickHandler) {
+      document.removeEventListener("click", this.#outsideClickHandler, true);
+      this.#outsideClickHandler = null;
+    }
+    if (this.#scrollHandler) {
+      window.removeEventListener("scroll", this.#scrollHandler, true);
+      window.removeEventListener("resize", this.#scrollHandler);
+      clearTimeout(this.#scrollTimeout);
+      this.#scrollHandler = null;
+      this.#scrollTimeout = null;
     }
   }
 
@@ -250,24 +299,49 @@ export default class extends Controller {
     return this.blocksValue.find((b) => b.id === id);
   }
 
-  // --- Modal observer ---
+  // --- Private ---
 
-  _observeModal() {
+  #positionDropdown() {
+    const dropdown = this.dropdownTarget;
+    const container = dropdown.parentElement;
+    const containerRect = container.getBoundingClientRect();
+    const dropdownHeight = dropdown.offsetHeight;
+    const viewportHeight = window.innerHeight;
+
+    const spaceBelow = viewportHeight - containerRect.bottom;
+    const spaceAbove = containerRect.top;
+
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      // Not enough space below and more space above, show above
+      dropdown.style.bottom = "100%";
+      dropdown.style.top = "auto";
+      dropdown.style.marginBottom = "4px";
+      dropdown.style.marginTop = "0";
+    } else {
+      // Default: show below
+      dropdown.style.bottom = "auto";
+      dropdown.style.top = "100%";
+      dropdown.style.marginTop = "4px";
+      dropdown.style.marginBottom = "0";
+    }
+  }
+
+  #observeModal() {
     const modalFrame = document.querySelector("turbo-frame[id='modal']");
     if (!modalFrame || !this.hasBlocksDataUrlValue || !this.blocksDataUrlValue)
       return;
 
-    this._modalWasOpen = false;
-    this._modalObserver = new MutationObserver(() => {
+    this.#modalWasOpen = false;
+    this.#modalObserver = new MutationObserver(() => {
       const hasModal = modalFrame.querySelector(".modal");
       if (hasModal) {
-        this._modalWasOpen = true;
-      } else if (this._modalWasOpen) {
-        this._modalWasOpen = false;
+        this.#modalWasOpen = true;
+      } else if (this.#modalWasOpen) {
+        this.#modalWasOpen = false;
         this.refreshBlocks();
       }
     });
-    this._modalObserver.observe(modalFrame, { childList: true });
+    this.#modalObserver.observe(modalFrame, { childList: true });
   }
 
   refreshBlocks() {
