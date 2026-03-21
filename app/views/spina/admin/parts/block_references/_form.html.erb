@@ -4,7 +4,7 @@
     <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
   <% end %>
   <div class="mt-1">
-    <% blocks = Spina::Blocks::Block.active.sorted %>
+    <% blocks = f.object.available_blocks %>
     <%= f.select :block_id,
           blocks.map { |b| [b.name, b.id] },
           {include_blank: t('spina.blocks.select_block')},

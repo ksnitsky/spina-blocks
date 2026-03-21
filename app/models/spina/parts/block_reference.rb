@@ -3,6 +3,8 @@
 module Spina
   module Parts
     class BlockReference < Base
+      include BlockFilterable
+
       attr_json :block_id, :integer, default: nil
 
       attr_accessor :options

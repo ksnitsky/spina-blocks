@@ -1,5 +1,5 @@
 <%
-  blocks = Spina::Blocks::Block.active.sorted
+  blocks = f.object.available_blocks
   selected_ids = f.object.block_ids || []
   field_name = "#{f.object_name}[block_ids][]"
 

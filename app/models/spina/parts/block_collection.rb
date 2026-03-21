@@ -3,6 +3,8 @@
 module Spina
   module Parts
     class BlockCollection < Base
+      include BlockFilterable
+
       attr_json :block_ids, :integer, array: true, default: -> { [] }
 
       attr_accessor :options
