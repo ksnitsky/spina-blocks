@@ -7,7 +7,7 @@ export default class extends Controller {
       "list",
       "hiddenFields",
       "dropdown",
-      "addButton",
+      "searchInput",
       "emptyMessage",
       "listItemTemplate",
       "groupHeaderTemplate",
@@ -58,6 +58,10 @@ export default class extends Controller {
     if (this.selectedIdsValue.indexOf(id) !== -1) return;
 
     this.selectedIdsValue = this.selectedIdsValue.concat([id]);
+    this._searchQuery = "";
+    if (this.hasSearchInputTarget) {
+      this.searchInputTarget.value = "";
+    }
     this.render();
     this.closeDropdown();
   }
@@ -69,15 +73,18 @@ export default class extends Controller {
     this.render();
   }
 
-  toggleDropdown(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    const dropdown = this.dropdownTarget;
-    if (dropdown.style.display === "none" || dropdown.style.display === "") {
-      this.openDropdown();
-    } else {
-      this.closeDropdown();
-    }
+  onSearchInput(event) {
+    this._searchQuery = event.target.value;
+    this.renderDropdown();
+    this.openDropdown();
+  }
+
+  onSearchFocus() {
+    this._searchQuery = this.hasSearchInputTarget
+      ? this.searchInputTarget.value
+      : "";
+    this.renderDropdown();
+    this.openDropdown();
   }
 
   closeOnOutsideClick(event) {
@@ -126,9 +133,17 @@ export default class extends Controller {
   }
 
   renderDropdown() {
-    const availableBlocks = this.blocksValue.filter((b) => {
+    let availableBlocks = this.blocksValue.filter((b) => {
       return this.selectedIdsValue.indexOf(b.id) === -1;
     });
+
+    // Filter by search query
+    const query = (this._searchQuery || "").toLowerCase().trim();
+    if (query) {
+      availableBlocks = availableBlocks.filter((b) => {
+        return b.name.toLowerCase().includes(query);
+      });
+    }
 
     this.dropdownTarget.innerHTML = "";
 
@@ -221,6 +236,10 @@ export default class extends Controller {
 
   closeDropdown() {
     this.dropdownTarget.style.display = "none";
+    this._searchQuery = "";
+    if (this.hasSearchInputTarget) {
+      this.searchInputTarget.value = "";
+    }
     if (this._outsideClickHandler) {
       document.removeEventListener("click", this._outsideClickHandler, true);
       this._outsideClickHandler = null;
