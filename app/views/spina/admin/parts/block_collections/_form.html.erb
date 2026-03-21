@@ -28,6 +28,7 @@
      data-block-collection-selected-ids-value="<%= selected_ids.to_json %>"
      data-block-collection-edit-url-value="<%= spina.edit_modal_blocks_admin_block_path("__ID__") %>"
      data-block-collection-new-url-value="<%= spina.new_blocks_admin_block_path(modal: 1) %>"
+     data-block-collection-blocks-data-url-value="<%= spina.blocks_data_blocks_admin_blocks_path(format: :json) %>"
      data-field-name="<%= field_name %>">
 
   <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>

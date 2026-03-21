@@ -92,6 +92,19 @@ module Spina
           end
         end
 
+        def blocks_data
+          blocks = Spina::Blocks::Block.active.sorted
+          template_titles = build_template_titles
+          render(json: blocks.map do |b|
+            {
+              id: b.id,
+              name: b.name,
+              templateName: b.block_template.to_s,
+              templateTitle: template_titles[b.block_template.to_s] || b.block_template.to_s.titleize,
+            }
+          end)
+        end
+
         def sort
           params[:ids].each.with_index do |id, index|
             Spina::Blocks::Block.where(id: id).update_all(position: index + 1)
@@ -119,6 +132,14 @@ module Spina
 
         def set_tabs
           @tabs = ["block_content", "block_settings"]
+        end
+
+        def build_template_titles
+          titles = {}
+          (current_theme.try(:block_templates) || []).each do |bt|
+            titles[bt[:name].to_s] = bt[:title].to_s
+          end
+          titles
         end
 
         def block_params

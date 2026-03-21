@@ -11,6 +11,7 @@ Spina::Engine.routes.draw do
 
         collection do
           post :sort
+          get :blocks_data
         end
       end
 

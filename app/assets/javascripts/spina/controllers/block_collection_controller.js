@@ -23,6 +23,7 @@ export default class extends Controller {
       selectedIds: Array, // [id, id, ...]
       editUrl: String, // base edit_modal URL with __ID__ placeholder
       newUrl: String, // URL for new block modal
+      blocksDataUrl: String, // JSON endpoint to refresh blocks list
     };
   }
 
@@ -38,10 +39,15 @@ export default class extends Controller {
       onEnd: this.reorderHiddenFields.bind(this),
     });
     this.render();
+    this._observeModal();
   }
 
   disconnect() {
     if (this.sortable) this.sortable.destroy();
+    if (this._modalObserver) {
+      this._modalObserver.disconnect();
+      this._modalObserver = null;
+    }
   }
 
   // --- Actions ---
@@ -223,5 +229,36 @@ export default class extends Controller {
 
   findBlock(id) {
     return this.blocksValue.find((b) => b.id === id);
+  }
+
+  // --- Modal observer ---
+
+  _observeModal() {
+    const modalFrame = document.querySelector("turbo-frame[id='modal']");
+    if (!modalFrame || !this.hasBlocksDataUrlValue || !this.blocksDataUrlValue)
+      return;
+
+    this._modalWasOpen = false;
+    this._modalObserver = new MutationObserver(() => {
+      const hasModal = modalFrame.querySelector(".modal");
+      if (hasModal) {
+        this._modalWasOpen = true;
+      } else if (this._modalWasOpen) {
+        this._modalWasOpen = false;
+        this.refreshBlocks();
+      }
+    });
+    this._modalObserver.observe(modalFrame, { childList: true });
+  }
+
+  refreshBlocks() {
+    fetch(this.blocksDataUrlValue, {
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => response.json())
+      .then((blocks) => {
+        this.blocksValue = blocks;
+        this.render();
+      });
   }
 }
