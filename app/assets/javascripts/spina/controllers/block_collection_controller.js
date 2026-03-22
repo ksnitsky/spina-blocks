@@ -2,17 +2,26 @@ import { Controller } from "@hotwired/stimulus";
 import Sortable from "libraries/sortablejs";
 
 export default class extends Controller {
+  #abortController = null;
+  #modalWasOpen = false;
+  #modalObserver = null;
+
+  get #searchQuery() {
+    return this.hasSearchInputTarget ? this.searchInputTarget.value : "";
+  }
+
   static get targets() {
     return [
       "list",
       "hiddenFields",
       "dropdown",
-      "addButton",
+      "searchInput",
       "emptyMessage",
       "listItemTemplate",
       "groupHeaderTemplate",
       "dropdownOptionTemplate",
       "dropdownEmptyTemplate",
+      "newBlockTemplate",
     ];
   }
 
@@ -21,6 +30,8 @@ export default class extends Controller {
       blocks: Array, // [{id, name, templateName, templateTitle}]
       selectedIds: Array, // [id, id, ...]
       editUrl: String, // base edit_modal URL with __ID__ placeholder
+      newUrl: String, // URL for new block modal
+      blocksDataUrl: String, // JSON endpoint to refresh blocks list
     };
   }
 
@@ -36,10 +47,17 @@ export default class extends Controller {
       onEnd: this.reorderHiddenFields.bind(this),
     });
     this.render();
+    this.#observeModal();
   }
 
   disconnect() {
     if (this.sortable) this.sortable.destroy();
+    if (this.#modalObserver) {
+      this.#modalObserver.disconnect();
+      this.#modalObserver = null;
+    }
+    this.#abortController?.abort();
+    this.#abortController = null;
   }
 
   // --- Actions ---
@@ -50,6 +68,9 @@ export default class extends Controller {
     if (this.selectedIdsValue.indexOf(id) !== -1) return;
 
     this.selectedIdsValue = this.selectedIdsValue.concat([id]);
+    if (this.hasSearchInputTarget) {
+      this.searchInputTarget.value = "";
+    }
     this.render();
     this.closeDropdown();
   }
@@ -61,19 +82,23 @@ export default class extends Controller {
     this.render();
   }
 
-  toggleDropdown(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    const dropdown = this.dropdownTarget;
-    if (dropdown.style.display === "none" || dropdown.style.display === "") {
-      this.openDropdown();
-    } else {
-      this.closeDropdown();
-    }
+  onSearchInput() {
+    this.renderDropdown();
+    this.openDropdown();
+  }
+
+  onSearchFocus() {
+    this.renderDropdown();
+    this.openDropdown();
   }
 
   closeOnOutsideClick(event) {
-    if (!this.element.contains(event.target)) {
+    const clickedInsideSearch =
+      this.hasSearchInputTarget &&
+      this.searchInputTarget.contains(event.target);
+    const clickedInsideDropdown = this.dropdownTarget.contains(event.target);
+
+    if (!clickedInsideSearch && !clickedInsideDropdown) {
       this.closeDropdown();
     }
   }
@@ -118,43 +143,74 @@ export default class extends Controller {
   }
 
   renderDropdown() {
-    const availableBlocks = this.blocksValue.filter((b) => {
+    let availableBlocks = this.blocksValue.filter((b) => {
       return this.selectedIdsValue.indexOf(b.id) === -1;
     });
+
+    // Filter by search query
+    const query = this.#searchQuery.toLowerCase().trim();
+    if (query) {
+      availableBlocks = availableBlocks.filter((b) => {
+        return (
+          b.name.toLowerCase().includes(query) ||
+          (b.templateTitle && b.templateTitle.toLowerCase().includes(query)) ||
+          (b.templateName && b.templateName.toLowerCase().includes(query))
+        );
+      });
+    }
 
     this.dropdownTarget.innerHTML = "";
 
     if (availableBlocks.length === 0) {
       const empty = this.dropdownEmptyTemplateTarget.content.cloneNode(true);
       this.dropdownTarget.appendChild(empty);
-      return;
+    } else {
+      // Group by templateTitle
+      const groups = {};
+      availableBlocks.forEach((b) => {
+        const key = b.templateTitle || b.templateName || "Other";
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(b);
+      });
+
+      Object.keys(groups)
+        .sort()
+        .forEach((groupName) => {
+          const header = this.groupHeaderTemplateTarget.content.cloneNode(true);
+          header.querySelector("[data-role='group-name']").textContent =
+            groupName;
+          this.dropdownTarget.appendChild(header);
+
+          groups[groupName].forEach((block) => {
+            const option =
+              this.dropdownOptionTemplateTarget.content.cloneNode(true);
+            const button = option.querySelector("button");
+            button.dataset.blockId = block.id;
+            option.querySelector("[data-role='title']").textContent =
+              block.name;
+            this.dropdownTarget.appendChild(option);
+          });
+        });
     }
 
-    // Group by templateTitle
-    const groups = {};
-    availableBlocks.forEach((b) => {
-      const key = b.templateTitle || b.templateName || "Other";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(b);
-    });
+    // "New block" link at the bottom of the dropdown
+    if (
+      this.hasNewBlockTemplateTarget &&
+      this.hasNewUrlValue &&
+      this.newUrlValue
+    ) {
+      const newBlock = this.newBlockTemplateTarget.content.cloneNode(true);
+      const link = newBlock.querySelector("[data-role='new-block-link']");
+      if (link) {
+        link.href = this.newUrlValue;
+      }
+      this.dropdownTarget.appendChild(newBlock);
+    }
 
-    Object.keys(groups)
-      .sort()
-      .forEach((groupName) => {
-        const header = this.groupHeaderTemplateTarget.content.cloneNode(true);
-        header.querySelector("[data-role='group-name']").textContent =
-          groupName;
-        this.dropdownTarget.appendChild(header);
-
-        groups[groupName].forEach((block) => {
-          const option =
-            this.dropdownOptionTemplateTarget.content.cloneNode(true);
-          const button = option.querySelector("button");
-          button.dataset.blockId = block.id;
-          option.querySelector("[data-role='title']").textContent = block.name;
-          this.dropdownTarget.appendChild(option);
-        });
-      });
+    // Reposition if dropdown is currently visible
+    if (this.dropdownTarget.style.display !== "none") {
+      this.#positionDropdown();
+    }
   }
 
   renderEmptyMessage() {
@@ -197,20 +253,101 @@ export default class extends Controller {
   }
 
   openDropdown() {
+    if (this.dropdownTarget.style.display === "block") {
+      // Already open, just reposition
+      this.#positionDropdown();
+      return;
+    }
+
     this.dropdownTarget.style.display = "block";
-    this._outsideClickHandler = this.closeOnOutsideClick.bind(this);
-    document.addEventListener("click", this._outsideClickHandler, true);
+    this.#positionDropdown();
+
+    this.#abortController = new AbortController();
+    const { signal } = this.#abortController;
+
+    document.addEventListener("click", (e) => this.closeOnOutsideClick(e), {
+      capture: true,
+      signal,
+    });
+
+    let scrollTimeout;
+    const debouncedPosition = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => this.#positionDropdown(), 100);
+    };
+    window.addEventListener("scroll", debouncedPosition, {
+      capture: true,
+      signal,
+    });
+    window.addEventListener("resize", debouncedPosition, { signal });
   }
 
   closeDropdown() {
     this.dropdownTarget.style.display = "none";
-    if (this._outsideClickHandler) {
-      document.removeEventListener("click", this._outsideClickHandler, true);
-      this._outsideClickHandler = null;
+    if (this.hasSearchInputTarget) {
+      this.searchInputTarget.value = "";
     }
+    this.#abortController?.abort();
+    this.#abortController = null;
   }
 
   findBlock(id) {
     return this.blocksValue.find((b) => b.id === id);
+  }
+
+  // --- Private ---
+
+  #positionDropdown() {
+    const dropdown = this.dropdownTarget;
+    const container = dropdown.parentElement;
+    const containerRect = container.getBoundingClientRect();
+    const dropdownHeight = dropdown.offsetHeight;
+    const viewportHeight = window.innerHeight;
+
+    const spaceBelow = viewportHeight - containerRect.bottom;
+    const spaceAbove = containerRect.top;
+
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      // Not enough space below and more space above, show above
+      dropdown.style.bottom = "100%";
+      dropdown.style.top = "auto";
+      dropdown.style.marginBottom = "4px";
+      dropdown.style.marginTop = "0";
+    } else {
+      // Default: show below
+      dropdown.style.bottom = "auto";
+      dropdown.style.top = "100%";
+      dropdown.style.marginTop = "4px";
+      dropdown.style.marginBottom = "0";
+    }
+  }
+
+  #observeModal() {
+    const modalFrame = document.querySelector("turbo-frame[id='modal']");
+    if (!modalFrame || !this.hasBlocksDataUrlValue || !this.blocksDataUrlValue)
+      return;
+
+    this.#modalWasOpen = false;
+    this.#modalObserver = new MutationObserver(() => {
+      const hasModal = modalFrame.querySelector(".modal");
+      if (hasModal) {
+        this.#modalWasOpen = true;
+      } else if (this.#modalWasOpen) {
+        this.#modalWasOpen = false;
+        this.refreshBlocks();
+      }
+    });
+    this.#modalObserver.observe(modalFrame, { childList: true });
+  }
+
+  refreshBlocks() {
+    fetch(this.blocksDataUrlValue, {
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => response.json())
+      .then((blocks) => {
+        this.blocksValue = blocks;
+        this.render();
+      });
   }
 }

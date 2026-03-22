@@ -119,6 +119,24 @@ theme.parts = [
 ]
 ```
 
+#### Filtering blocks by template
+
+By default, `BlockReference` and `BlockCollection` show all active blocks in their selects. To limit the list to blocks of a specific template, pass `block_template` in the part's `options`:
+
+```ruby
+theme.parts = [
+  { name: "hero_block", title: "Hero Block",
+    part_type: "Spina::Parts::BlockReference",
+    options: { block_template: "hero" } },
+
+  { name: "sidebar_blocks", title: "Sidebar Blocks",
+    part_type: "Spina::Parts::BlockCollection",
+    options: { block_template: "sidebar_widget" } }
+]
+```
+
+With this configuration, the "Hero Block" select will only show blocks created with the `hero` template, and "Sidebar Blocks" will only show `sidebar_widget` blocks. If `options` is omitted or does not contain `block_template`, all active blocks are shown (the default behavior).
+
 Then in your template:
 
 ```erb

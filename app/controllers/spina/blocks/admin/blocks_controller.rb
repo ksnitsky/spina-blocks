@@ -29,18 +29,31 @@ module Spina
         def new
           @block_templates = current_theme.try(:block_templates) || []
           @block = Spina::Blocks::Block.new(block_template: params[:block_template])
+          @modal = params[:modal]
         end
 
         def create
           @block = Spina::Blocks::Block.new(block_params)
           if @block.save
-            redirect_to(spina.edit_blocks_admin_block_url(@block))
+            if params[:modal]
+              redirect_to(spina.edit_modal_blocks_admin_block_url(@block))
+            else
+              redirect_to(spina.edit_blocks_admin_block_url(@block))
+            end
           else
             @block_templates = current_theme.try(:block_templates) || []
-            render(turbo_stream: turbo_stream.update(
-              helpers.dom_id(@block, :new_block_form),
-              partial: "new_block_form",
-            ))
+            if params[:modal]
+              @modal = true
+              render(turbo_stream: turbo_stream.update(
+                helpers.dom_id(@block, :new_block_modal_form),
+                partial: "new_block_modal_form",
+              ))
+            else
+              render(turbo_stream: turbo_stream.update(
+                helpers.dom_id(@block, :new_block_form),
+                partial: "new_block_form",
+              ))
+            end
           end
         end
 
@@ -79,6 +92,19 @@ module Spina
           end
         end
 
+        def blocks_data
+          blocks = Spina::Blocks::Block.active.sorted
+          template_titles = build_template_titles
+          render(json: blocks.map do |b|
+            {
+              id: b.id,
+              name: b.name,
+              templateName: b.block_template.to_s,
+              templateTitle: template_titles[b.block_template.to_s] || b.block_template.to_s.titleize,
+            }
+          end)
+        end
+
         def sort
           params[:ids].each.with_index do |id, index|
             Spina::Blocks::Block.where(id: id).update_all(position: index + 1)
@@ -106,6 +132,14 @@ module Spina
 
         def set_tabs
           @tabs = ["block_content", "block_settings"]
+        end
+
+        def build_template_titles
+          titles = {}
+          (current_theme.try(:block_templates) || []).each do |bt|
+            titles[bt[:name].to_s] = bt[:title].to_s
+          end
+          titles
         end
 
         def block_params

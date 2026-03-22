@@ -1,5 +1,5 @@
 <%
-  blocks = Spina::Blocks::Block.active.sorted
+  blocks = f.object.available_blocks
   selected_ids = f.object.block_ids || []
   field_name = "#{f.object_name}[block_ids][]"
 
@@ -27,6 +27,8 @@
      data-block-collection-blocks-value="<%= blocks_json.to_json %>"
      data-block-collection-selected-ids-value="<%= selected_ids.to_json %>"
      data-block-collection-edit-url-value="<%= spina.edit_modal_blocks_admin_block_path("__ID__") %>"
+     data-block-collection-new-url-value="<%= spina.new_blocks_admin_block_path(modal: 1) %>"
+     data-block-collection-blocks-data-url-value="<%= spina.blocks_data_blocks_admin_blocks_path(format: :json) %>"
      data-field-name="<%= field_name %>">
 
   <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
@@ -34,11 +36,26 @@
     <div class="text-gray-400 text-sm mb-2"><%= f.object.hint %></div>
   <% end %>
 
+  <%# Search input + dropdown %>
+  <div class="relative mb-3">
+    <input type="text"
+           data-block-collection-target="searchInput"
+           data-action="input->block-collection#onSearchInput focus->block-collection#onSearchFocus"
+           placeholder="Search or add block..."
+           autocomplete="off"
+           class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-spina focus:ring-spina" />
+
+    <div data-block-collection-target="dropdown"
+         style="display:none"
+         class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
+    </div>
+  </div>
+
   <%# Empty state message %>
   <div data-block-collection-target="emptyMessage"
        class="text-sm text-gray-400 italic py-3"
        style="<%= selected_ids.any? ? 'display:none' : '' %>">
-    No blocks selected. Click &ldquo;Add block&rdquo; to get started.
+    No blocks selected. Use the search field above to add blocks.
   </div>
 
   <%# Sortable list of selected blocks (rendered by Stimulus) %>
@@ -46,24 +63,6 @@
 
   <%# Hidden fields container (rendered by Stimulus) %>
   <div data-block-collection-target="hiddenFields"></div>
-
-  <%# Add block button + dropdown %>
-  <div class="relative inline-block">
-    <button type="button"
-            data-action="block-collection#toggleDropdown"
-            data-block-collection-target="addButton"
-            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spina">
-      <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-      </svg>
-      Add block
-    </button>
-
-    <div data-block-collection-target="dropdown"
-         style="display:none"
-         class="absolute z-10 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto">
-    </div>
-  </div>
 
   <%# ===== Templates for Stimulus controller ===== %>
 
@@ -110,6 +109,19 @@
 
   <%# Dropdown empty state %>
   <template data-block-collection-target="dropdownEmptyTemplate">
-    <div class="px-3 py-2 text-sm text-gray-400 italic">All blocks added</div>
+    <div class="px-3 py-2 text-sm text-gray-400 italic">No blocks found</div>
+  </template>
+
+  <%# Dropdown "New block" link %>
+  <template data-block-collection-target="newBlockTemplate">
+    <div class="border-t border-gray-200 mt-1 pt-1">
+      <a class="w-full text-left px-3 py-2 text-sm text-spina-primary hover:bg-gray-100 flex items-center font-medium"
+         href="" data-turbo-frame="modal" data-role="new-block-link">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <%= t('spina.blocks.new') %>
+      </a>
+    </div>
   </template>
 </div>
