@@ -151,7 +151,11 @@ export default class extends Controller {
     const query = this.#searchQuery.toLowerCase().trim();
     if (query) {
       availableBlocks = availableBlocks.filter((b) => {
-        return b.name.toLowerCase().includes(query);
+        return (
+          b.name.toLowerCase().includes(query) ||
+          (b.templateTitle && b.templateTitle.toLowerCase().includes(query)) ||
+          (b.templateName && b.templateName.toLowerCase().includes(query))
+        );
       });
     }
 
