@@ -2,12 +2,13 @@ import { Controller } from "@hotwired/stimulus";
 import Sortable from "libraries/sortablejs";
 
 export default class extends Controller {
-  #searchQuery = "";
-  #outsideClickHandler = null;
+  #abortController = null;
   #modalWasOpen = false;
   #modalObserver = null;
-  #scrollHandler = null;
-  #scrollTimeout = null;
+
+  get #searchQuery() {
+    return this.hasSearchInputTarget ? this.searchInputTarget.value : "";
+  }
 
   static get targets() {
     return [
@@ -55,13 +56,8 @@ export default class extends Controller {
       this.#modalObserver.disconnect();
       this.#modalObserver = null;
     }
-    if (this.#scrollHandler) {
-      window.removeEventListener("scroll", this.#scrollHandler, true);
-      window.removeEventListener("resize", this.#scrollHandler);
-      clearTimeout(this.#scrollTimeout);
-      this.#scrollHandler = null;
-      this.#scrollTimeout = null;
-    }
+    this.#abortController?.abort();
+    this.#abortController = null;
   }
 
   // --- Actions ---
@@ -72,7 +68,6 @@ export default class extends Controller {
     if (this.selectedIdsValue.indexOf(id) !== -1) return;
 
     this.selectedIdsValue = this.selectedIdsValue.concat([id]);
-    this.#searchQuery = "";
     if (this.hasSearchInputTarget) {
       this.searchInputTarget.value = "";
     }
@@ -87,23 +82,20 @@ export default class extends Controller {
     this.render();
   }
 
-  onSearchInput(event) {
-    this.#searchQuery = event.target.value;
+  onSearchInput() {
     this.renderDropdown();
     this.openDropdown();
   }
 
   onSearchFocus() {
-    this.#searchQuery = this.hasSearchInputTarget
-      ? this.searchInputTarget.value
-      : "";
     this.renderDropdown();
     this.openDropdown();
   }
 
   closeOnOutsideClick(event) {
     const clickedInsideSearch =
-      this.hasSearchInputTarget && this.searchInputTarget.contains(event.target);
+      this.hasSearchInputTarget &&
+      this.searchInputTarget.contains(event.target);
     const clickedInsideDropdown = this.dropdownTarget.contains(event.target);
 
     if (!clickedInsideSearch && !clickedInsideDropdown) {
@@ -190,7 +182,8 @@ export default class extends Controller {
               this.dropdownOptionTemplateTarget.content.cloneNode(true);
             const button = option.querySelector("button");
             button.dataset.blockId = block.id;
-            option.querySelector("[data-role='title']").textContent = block.name;
+            option.querySelector("[data-role='title']").textContent =
+              block.name;
             this.dropdownTarget.appendChild(option);
           });
         });
@@ -265,34 +258,33 @@ export default class extends Controller {
     this.dropdownTarget.style.display = "block";
     this.#positionDropdown();
 
-    this.#outsideClickHandler = this.closeOnOutsideClick.bind(this);
-    document.addEventListener("click", this.#outsideClickHandler, true);
+    this.#abortController = new AbortController();
+    const { signal } = this.#abortController;
 
-    this.#scrollHandler = () => {
-      clearTimeout(this.#scrollTimeout);
-      this.#scrollTimeout = setTimeout(() => this.#positionDropdown(), 100);
+    document.addEventListener("click", (e) => this.closeOnOutsideClick(e), {
+      capture: true,
+      signal,
+    });
+
+    let scrollTimeout;
+    const debouncedPosition = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => this.#positionDropdown(), 100);
     };
-    window.addEventListener("scroll", this.#scrollHandler, true);
-    window.addEventListener("resize", this.#scrollHandler);
+    window.addEventListener("scroll", debouncedPosition, {
+      capture: true,
+      signal,
+    });
+    window.addEventListener("resize", debouncedPosition, { signal });
   }
 
   closeDropdown() {
     this.dropdownTarget.style.display = "none";
-    this.#searchQuery = "";
     if (this.hasSearchInputTarget) {
       this.searchInputTarget.value = "";
     }
-    if (this.#outsideClickHandler) {
-      document.removeEventListener("click", this.#outsideClickHandler, true);
-      this.#outsideClickHandler = null;
-    }
-    if (this.#scrollHandler) {
-      window.removeEventListener("scroll", this.#scrollHandler, true);
-      window.removeEventListener("resize", this.#scrollHandler);
-      clearTimeout(this.#scrollTimeout);
-      this.#scrollHandler = null;
-      this.#scrollTimeout = null;
-    }
+    this.#abortController?.abort();
+    this.#abortController = null;
   }
 
   findBlock(id) {
