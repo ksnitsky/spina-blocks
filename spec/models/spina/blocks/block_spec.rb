@@ -14,6 +14,13 @@ RSpec.describe(Spina::Blocks::Block, type: :model) do
       expect(block.errors[:name]).to(include("can't be blank"))
     end
 
+    it "requires a unique name" do
+      create(:spina_blocks_block, name: "Duplicate")
+      block.name = "Duplicate"
+      expect(block).not_to(be_valid)
+      expect(block.errors[:name]).to(include("has already been taken"))
+    end
+
     it "requires a block_template" do
       block.block_template = nil
       expect(block).not_to(be_valid)

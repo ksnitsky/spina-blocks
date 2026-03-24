@@ -14,7 +14,7 @@ module Spina
 
       before_destroy :ensure_deletable
 
-      validates :name, presence: true
+      validates :name, presence: true, uniqueness: true
       validates :block_template, presence: true
       validates :key, uniqueness: { allow_nil: true }
       validate :key_must_not_change, on: :update
