@@ -96,11 +96,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_150905) do
     t.string "block_template", null: false
     t.bigint "category_id"
     t.datetime "created_at", null: false
+    t.boolean "deletable", default: true, null: false
     t.json "json_attributes"
+    t.string "key"
     t.string "name", null: false
     t.integer "position", default: 0
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_spina_blocks_blocks_on_category_id"
+    t.index ["key"], name: "index_spina_blocks_blocks_on_key", unique: true, where: "(key IS NOT NULL)"
     t.index ["name"], name: "index_spina_blocks_blocks_on_name", unique: true
   end
 

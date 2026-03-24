@@ -41,6 +41,109 @@ RSpec.describe(Spina::Parts::BlockReference, type: :model) do
     end
   end
 
+  describe "#content with custom_block option" do
+    let!(:custom_block) { create(:spina_blocks_block, :system, key: "header", active: true) }
+
+    context "with symbol key" do
+      before { part.options = { custom_block: "header" } }
+
+      it "returns the block by key" do
+        expect(part.content).to(eq(custom_block))
+      end
+
+      it "ignores block_id when custom_block is set" do
+        other_block = create(:spina_blocks_block, active: true)
+        part.block_id = other_block.id
+
+        expect(part.content).to(eq(custom_block))
+      end
+    end
+
+    context "with string key" do
+      before { part.options = { "custom_block" => "header" } }
+
+      it "returns the block by key" do
+        expect(part.content).to(eq(custom_block))
+      end
+    end
+
+    context "when custom_block refers to a non-existent key" do
+      before { part.options = { custom_block: "non_existent" } }
+
+      it "returns nil" do
+        expect(part.content).to(be_nil)
+      end
+    end
+
+    context "when custom_block option is nil" do
+      before { part.options = { custom_block: nil } }
+
+      it "falls back to block_id lookup" do
+        block = create(:spina_blocks_block, active: true)
+        part.block_id = block.id
+
+        expect(part.content).to(eq(block))
+      end
+    end
+
+    context "when block has key but user renames its display name" do
+      it "still finds the block by key regardless of name" do
+        custom_block.update!(name: "Totally Different Name")
+        part.options = { custom_block: "header" }
+
+        expect(part.content).to(eq(custom_block))
+      end
+    end
+  end
+
+  describe "#custom_block_name" do
+    it "returns nil when options is nil" do
+      part.options = nil
+      expect(part.custom_block_name).to(be_nil)
+    end
+
+    it "returns nil when options is empty" do
+      part.options = {}
+      expect(part.custom_block_name).to(be_nil)
+    end
+
+    it "returns the value from symbol key" do
+      part.options = { custom_block: "header" }
+      expect(part.custom_block_name).to(eq("header"))
+    end
+
+    it "returns the value from string key" do
+      part.options = { "custom_block" => "footer" }
+      expect(part.custom_block_name).to(eq("footer"))
+    end
+  end
+
+  describe "#custom_block_record" do
+    it "returns nil when custom_block_name is blank" do
+      part.options = nil
+      expect(part.custom_block_record).to(be_nil)
+    end
+
+    it "returns the block when found by key" do
+      block = create(:spina_blocks_block, :system, key: "footer")
+      part.options = { custom_block: "footer" }
+
+      expect(part.custom_block_record).to(eq(block))
+    end
+
+    it "returns nil when block key is not found" do
+      part.options = { custom_block: "missing" }
+      expect(part.custom_block_record).to(be_nil)
+    end
+
+    it "does not match blocks by name instead of key" do
+      create(:spina_blocks_block, name: "footer", key: nil)
+      part.options = { custom_block: "footer" }
+
+      expect(part.custom_block_record).to(be_nil)
+    end
+  end
+
   describe "#available_blocks" do
     let!(:hero_block) { create(:spina_blocks_block, block_template: "hero", active: true, position: 1) }
     let!(:text_block) { create(:spina_blocks_block, block_template: "text", active: true, position: 2) }

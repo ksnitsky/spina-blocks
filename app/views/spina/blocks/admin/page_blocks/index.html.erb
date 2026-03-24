@@ -70,14 +70,20 @@
                 </div>
               <% end %>
             </div>
-            <div class="pr-4">
-              <%= button_to spina.blocks_admin_page_page_block_path(page_id: @page.id, id: page_block.id),
-                    method: :delete,
-                    class: "text-gray-300 hover:text-red-500 transition-colors",
-                    form: {data: {controller: "confirm", confirm_message: t('spina.page_blocks.remove_confirmation')}} do %>
-                <%= heroicon('x-mark', style: :mini, class: 'w-5 h-5') %>
-              <% end %>
-            </div>
+            <% if page_block.block.deletable? %>
+              <div class="pr-4">
+                <%= button_to spina.blocks_admin_page_page_block_path(page_id: @page.id, id: page_block.id),
+                      method: :delete,
+                      class: "text-gray-300 hover:text-red-500 transition-colors",
+                      form: {data: {controller: "confirm", confirm_message: t('spina.page_blocks.remove_confirmation')}} do %>
+                  <%= heroicon('x-mark', style: :mini, class: 'w-5 h-5') %>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="pr-4">
+                <span class="text-xs text-blue-500 font-medium"><%= t('spina.blocks.system_block') %></span>
+              </div>
+            <% end %>
           </li>
         <% end %>
       </ul>

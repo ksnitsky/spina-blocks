@@ -12,7 +12,7 @@ module Spina
         end
 
         ::Spina::Theme.class_eval do
-          attr_accessor :block_templates, :block_categories
+          attr_accessor :block_templates, :block_categories, :custom_blocks
 
           unless method_defined?(:initialize_without_blocks)
             alias_method :initialize_without_blocks, :initialize
@@ -21,6 +21,7 @@ module Spina
               initialize_without_blocks
               @block_templates = []
               @block_categories = []
+              @custom_blocks = []
             end
           end
         end

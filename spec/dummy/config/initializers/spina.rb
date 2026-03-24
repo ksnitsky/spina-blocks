@@ -17,4 +17,8 @@ Spina::Theme.register do |theme|
   theme.block_templates = [
     { name: "text", title: "Text Block", parts: [] },
   ]
+
+  theme.custom_blocks = [
+    { name: "header", title: "Header Block", block_template: "text", category: "general" },
+  ]
 end

@@ -115,6 +115,12 @@ module Spina
         end
 
         def destroy
+          unless @block.deletable?
+            flash[:error] = I18n.t("spina.blocks.cannot_delete_system_block")
+            redirect_to(spina.edit_blocks_admin_block_url(@block))
+            return
+          end
+
           flash[:info] = I18n.t("spina.blocks.deleted")
           @block.destroy
           redirect_to(spina.blocks_admin_blocks_url)

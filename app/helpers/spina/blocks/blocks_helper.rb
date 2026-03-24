@@ -45,6 +45,13 @@ module Spina
         block.has_content?(part_name)
       end
 
+      # Render a custom (system) block by its unique key
+      # Usage: <%= render_custom_block("header") %>
+      def render_custom_block(key)
+        block = Spina::Blocks::Block.find_by(key: key)
+        render_block(block) if block
+      end
+
       private
 
       def render_block_fallback(block)

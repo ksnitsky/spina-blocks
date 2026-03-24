@@ -1,6 +1,6 @@
 # Spina Blocks
 
-> ⚠️ **Warning**: This plugin is not production-ready and may cause issues. Use at your own risk.
+> **Warning**: This plugin is not production-ready and may cause issues. Use at your own risk.
 
 A plugin for [Spina CMS](https://www.spinacms.com) that adds reusable block components. Blocks are independent content units with their own templates and fields that can be assembled into pages.
 
@@ -70,6 +70,12 @@ Spina::Theme.register do |theme|
       description: "Call to action banner",
       parts: ["headline", "body", "button_text", "button_url"]
     }
+  ]
+
+  # Custom blocks (system blocks, created automatically during bootstrap)
+  theme.custom_blocks = [
+    { name: "header", title: "Header Block", block_template: "header", category: "heroes" },
+    { name: "footer", title: "Footer Block", block_template: "footer", category: "cta" }
   ]
 
   # Page templates (can use BlockCollection or BlockReference parts)
@@ -149,6 +155,93 @@ Then in your template:
 <% end %>
 ```
 
+## Custom blocks (system blocks)
+
+Custom blocks are non-deletable blocks that are automatically created during `rake spina:bootstrap`. They work similarly to Spina's `custom_pages` — once defined in the theme configuration, they are created on bootstrap and cannot be deleted through the admin interface.
+
+### Defining custom blocks
+
+Add `custom_blocks` to your theme initializer:
+
+```ruby
+theme.custom_blocks = [
+  { name: "header", title: "Header Block", block_template: "header", category: "heroes" },
+  { name: "footer", title: "Footer Block", block_template: "footer", category: "cta" }
+]
+```
+
+Each custom block accepts:
+
+| Key              | Description                                                              |
+| ---------------- | ------------------------------------------------------------------------ |
+| `name`           | Immutable machine key (used for lookups in code and templates)            |
+| `title`          | (Optional) Initial display name shown in admin. Defaults to `name.titleize`. Editable by users after creation |
+| `block_template` | Must match a template defined in `theme.block_templates`                 |
+| `category`       | (Optional) Name of a category from `theme.block_categories`              |
+
+### Key vs Name
+
+Custom blocks have two identifiers:
+
+- **`key`** — an immutable machine identifier (set from `name` in the config). Used by `render_custom_block`, `BlockReference` with `custom_block` option, and for bootstrap lookups. Cannot be changed after creation. Shown as read-only in the block settings tab.
+- **`name`** — the display name shown in the admin UI. Initially set from `title` (or `name.titleize` if `title` is omitted). Users can freely rename it without breaking any template references.
+
+Regular (non-system) blocks do not have a `key` — it is `nil` for them.
+
+### How it works
+
+- **Bootstrap**: Custom blocks are created (or updated) automatically whenever `Spina::Account` is saved — this includes `rake spina:bootstrap` and admin account edits. They are created with `deletable: false` and an immutable `key`.
+- **Idempotent**: Running bootstrap multiple times will not duplicate blocks. Existing blocks are found by `key` and updated. The display `name` is only set on initial creation — subsequent bootstraps preserve user edits to the display name.
+- **Deletion protection**: System blocks cannot be deleted through the admin UI or programmatically via `destroy`. The delete button is hidden in the block editor, and the controller rejects delete requests for system blocks.
+- **Admin UI**: System blocks are marked with a "System" badge in the block library. On page block lists, the remove button is hidden for system blocks. The `key` is displayed as read-only in the block settings tab.
+
+### Using custom blocks in templates
+
+#### Direct rendering by key
+
+Use `render_custom_block` to render a system block directly in any template:
+
+```erb
+<%# app/views/my_theme/pages/homepage.html.erb %>
+<%= render_custom_block("header") %>
+
+<main>
+  <%= render_blocks %>
+</main>
+
+<%= render_custom_block("footer") %>
+```
+
+This looks up the block by its immutable `key` and renders it using the block's template partial, just like `render_block`. Renaming the block's display name in the admin will not affect this lookup.
+
+#### As a pre-defined BlockReference
+
+Use the `custom_block` option in a `BlockReference` part to hardcode which block it points to:
+
+```ruby
+theme.parts = [
+  { name: "header_block", title: "Header",
+    part_type: "Spina::Parts::BlockReference",
+    options: { custom_block: "header" } },
+
+  { name: "footer_block", title: "Footer",
+    part_type: "Spina::Parts::BlockReference",
+    options: { custom_block: "footer" } }
+]
+```
+
+When `custom_block` is set:
+- The part's `content` method returns the block by `key` (ignoring `block_id`)
+- In the admin form, instead of a dropdown, a clickable link to the block's edit page is shown
+- If the custom block does not exist yet, a warning message is displayed
+
+Then in your template:
+
+```erb
+<%= render_block(content(:header_block)) %>
+<%= render_block(content(:footer_block)) %>
+```
+
 ## Models
 
 | Model                      | Description                                        |
@@ -162,18 +255,22 @@ Then in your template:
 The plugin adds:
 
 - **Blocks** link in the Content section of the admin sidebar
-- Block library with category tabs for filtering
+- Block library with template filter dropdown
 - Block editor with content fields (same as page editor)
 - Page Blocks management page (per-page block assignment and ordering)
+- **System** badge on non-deletable blocks in the block library
+- Delete button is hidden for system blocks
+- Immutable **key** shown as read-only in block settings for system blocks
 
 ## Helper methods
 
-| Helper                                  | Description                                         |
-| --------------------------------------- | --------------------------------------------------- |
-| `render_blocks(page)`                   | Render all blocks attached to a page via PageBlocks |
-| `render_block(block)`                   | Render a single block using its template partial    |
-| `block_content(block, :part_name)`      | Access a block's content                            |
-| `block_has_content?(block, :part_name)` | Check if a block has content                        |
+| Helper                                  | Description                                            |
+| --------------------------------------- | ------------------------------------------------------ |
+| `render_blocks(page)`                   | Render all blocks attached to a page via PageBlocks    |
+| `render_block(block)`                   | Render a single block using its template partial       |
+| `render_custom_block(key)`              | Render a custom (system) block by its immutable key    |
+| `block_content(block, :part_name)`      | Access a block's content                               |
+| `block_has_content?(block, :part_name)` | Check if a block has content                           |
 
 ## License
 
