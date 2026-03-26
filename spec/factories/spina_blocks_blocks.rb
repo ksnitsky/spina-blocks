@@ -7,5 +7,14 @@ FactoryBot.define do
     active { true }
     position { 0 }
     association :category, factory: :spina_blocks_category
+
+    trait :undeletable do
+      deletable { false }
+    end
+
+    trait :system do
+      sequence(:key) { |n| "system_block_#{n}" }
+      deletable { false }
+    end
   end
 end

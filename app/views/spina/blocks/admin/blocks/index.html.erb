@@ -1,7 +1,9 @@
 <%= render Spina::UserInterface::HeaderComponent.new do |header| %>
   <% header.with_actions do %>
-    <% block_templates = current_theme.try(:block_templates) || [] %>
-    <% if block_templates.any? %>
+    <% creatable_templates = (current_theme.try(:block_templates) || []).reject { |bt|
+         ((current_theme.try(:custom_blocks) || []).map { |cb| cb[:block_template].to_s }.uniq).include?(bt[:name].to_s)
+       } %>
+    <% if creatable_templates.any? %>
       <%= link_to spina.new_blocks_admin_block_path,
             class: "btn btn-primary",
             data: {turbo_frame: "modal"} do %>
@@ -18,7 +20,10 @@
           <button type="button"
                   class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   data-action="reveal#toggle">
-            <% if @current_block_template.present? %>
+            <% if @current_filter == "layout" %>
+              <%= heroicon('lock-closed', style: :mini, class: 'h-4 w-4 mr-1.5 -ml-0.5 opacity-75') %>
+              <%= t('spina.blocks.layout_blocks') %>
+            <% elsif @current_block_template.present? %>
               <% current_bt = @block_templates.find { |bt| bt[:name].to_s == @current_block_template } %>
               <%= current_bt ? current_bt[:title] : @current_block_template %>
             <% else %>
@@ -30,18 +35,33 @@
 
           <div hidden data-reveal data-transition class="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg border border-gray-200 z-30">
             <div class="rounded-md bg-white shadow-xs py-1">
+              <%# "All" filter %>
+              <% all_active = @current_block_template.nil? && @current_filter.nil? %>
               <%= link_to spina.blocks_admin_blocks_path,
-                    class: "flex items-center px-4 py-2 text-sm font-medium leading-5 #{@current_block_template.nil? ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}",
+                    class: "flex items-center px-4 py-2 text-sm font-medium leading-5 #{all_active ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}",
                     data: {action: "reveal#hide"} do %>
                 <%= heroicon('squares-2x2', class: 'h-4 w-4 mr-2 opacity-75') %>
                 <%= t('spina.blocks.all') %>
-                <% if @current_block_template.nil? %>
+                <% if all_active %>
+                  <%= heroicon('check', style: :mini, class: 'w-4 h-4 ml-auto opacity-75') %>
+                <% end %>
+              <% end %>
+
+              <%# "Layout" filter %>
+              <% layout_active = @current_filter == "layout" %>
+              <%= link_to spina.blocks_admin_blocks_path(filter: "layout"),
+                    class: "flex items-center px-4 py-2 text-sm font-medium leading-5 #{layout_active ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}",
+                    data: {action: "reveal#hide"} do %>
+                <%= heroicon('lock-closed', style: :mini, class: 'h-4 w-4 mr-2 opacity-75') %>
+                <%= t('spina.blocks.layout_blocks') %>
+                <% if layout_active %>
                   <%= heroicon('check', style: :mini, class: 'w-4 h-4 ml-auto opacity-75') %>
                 <% end %>
               <% end %>
 
               <div class="border-t border-gray-100 my-1"></div>
 
+              <%# Template filters %>
               <% @block_templates.each do |bt| %>
                 <% active = @current_block_template == bt[:name].to_s %>
                 <%= link_to spina.blocks_admin_blocks_path(block_template: bt[:name]),
@@ -84,6 +104,11 @@
                 </div>
               <% end %>
             </div>
+            <% unless block.deletable? %>
+              <div class="pr-4 shrink-0">
+                <span class="text-sm font-medium text-blue-500"><%= t('spina.blocks.layout_block') %></span>
+              </div>
+            <% end %>
           </li>
         <% end %>
       </ul>

@@ -1,4 +1,16 @@
 <div class="max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
+  <% if @block.key.present? %>
+    <div class="col-span-1 mt-6 md:mt-0">
+      <label class="block text-sm font-medium leading-5 text-gray-700">
+        <%= Spina::Blocks::Block.human_attribute_name(:key) %>
+      </label>
+    </div>
+
+    <div class="col-span-2 mt-1">
+      <span class="text-sm text-gray-500 font-mono"><%= @block.key %></span>
+    </div>
+  <% end %>
+
   <div class="col-span-1 mt-6 md:mt-0">
     <label class="block text-sm font-medium leading-5 text-gray-700">
       <%= Spina::Blocks::Block.human_attribute_name(:block_template) %>

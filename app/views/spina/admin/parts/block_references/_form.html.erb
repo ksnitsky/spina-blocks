@@ -4,10 +4,21 @@
     <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
   <% end %>
   <div class="mt-1">
-    <% blocks = f.object.available_blocks %>
-    <%= f.select :block_id,
-          blocks.map { |b| [b.name, b.id] },
-          {include_blank: t('spina.blocks.select_block')},
-          class: "form-select text-sm w-full shadow-xs" %>
+    <% if f.object.custom_block_name.present? %>
+      <% custom_block = f.object.custom_block_record %>
+      <% if custom_block %>
+        <%= link_to custom_block.name,
+              spina.edit_blocks_admin_block_path(custom_block),
+              class: "inline-flex items-center text-sm font-medium text-spina-primary hover:underline" %>
+      <% else %>
+        <span class="text-sm text-red-500"><%= t('spina.blocks.custom_block_not_found') %></span>
+      <% end %>
+    <% else %>
+      <% blocks = f.object.available_blocks %>
+      <%= f.select :block_id,
+            blocks.map { |b| [b.name, b.id] },
+            {include_blank: t('spina.blocks.select_block')},
+            class: "form-select text-sm w-full shadow-xs" %>
+    <% end %>
   </div>
 </div>

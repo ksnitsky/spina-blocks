@@ -32,6 +32,13 @@ module Spina
 
         def destroy
           @page_block = @page.page_blocks.find(params[:id])
+
+          unless @page_block.block.deletable?
+            flash[:error] = I18n.t("spina.page_blocks.cannot_remove_layout_block")
+            redirect_to(spina.blocks_admin_page_page_blocks_url(page_id: @page.id))
+            return
+          end
+
           @page_block.destroy
           flash[:info] = I18n.t("spina.page_blocks.removed")
           redirect_to(spina.blocks_admin_page_page_blocks_url(page_id: @page.id))
