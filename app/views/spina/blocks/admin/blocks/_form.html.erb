@@ -3,25 +3,27 @@
     <% header.with_actions do %>
       <%= render Spina::UserInterface::TranslationsComponent.new(@block, label: @locale.to_s.upcase) %>
 
-      <% if @block.deletable? %>
-        <div class="relative" data-controller="reveal" data-reveal-away-value>
-          <button type="button" class="btn btn-default px-3" data-action="reveal#toggle">
-            <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-            </svg>
-          </button>
+      <div class="relative" data-controller="reveal" data-reveal-away-value>
+        <button type="button" class="btn btn-default px-3" data-action="reveal#toggle">
+          <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+          </svg>
+        </button>
 
-          <div hidden data-reveal data-transition class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg border border-gray-200 z-30">
-            <div class="rounded-md bg-white shadow-xs py-1">
+        <div hidden data-reveal data-transition class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg border border-gray-200 z-30">
+          <div class="rounded-md bg-white shadow-xs py-1">
+            <% if @block.deletable? %>
               <%= button_to t('spina.blocks.delete'),
                     spina.blocks_admin_block_path(@block),
                     method: :delete,
                     class: "block w-full text-left px-4 py-2 text-sm leading-5 font-medium text-red-500 cursor-pointer bg-white hover:bg-red-100/50 hover:text-red-500",
                     form: {data: {controller: "confirm", confirm_message: t('spina.blocks.delete_confirmation')}} %>
-            </div>
+            <% else %>
+              <span class="block px-4 py-2 text-sm leading-5 text-gray-400"><%= t('spina.blocks.cannot_be_deleted') %></span>
+            <% end %>
           </div>
         </div>
-      <% end %>
+      </div>
 
       <button type="submit" form="<%= dom_id(@block) %>" class="btn btn-primary" data-controller="button hotkeys" data-hotkeys="command+s, ctrl+s" data-hotkeys-target="button" data-action="button#loading" data-loading-message="Saving...">
         <%= heroicon('check', style: :mini, class: 'w-5 h-5 -ml-1 mr-1') %>

@@ -17,17 +17,19 @@ module Spina
 
           @block_templates = current_theme.try(:block_templates) || []
 
-          if params[:block_template].present?
+          if params[:filter] == "layout"
+            @current_filter = "layout"
+            @blocks = Spina::Blocks::Block.undeletable.sorted
+          elsif params[:block_template].present?
             @current_block_template = params[:block_template]
             @blocks = Spina::Blocks::Block.where(block_template: @current_block_template).sorted
           else
-            @current_block_template = nil
             @blocks = Spina::Blocks::Block.sorted
           end
         end
 
         def new
-          @block_templates = current_theme.try(:block_templates) || []
+          @block_templates = creatable_block_templates
           @block = Spina::Blocks::Block.new(block_template: params[:block_template])
           @modal = params[:modal]
         end
@@ -41,7 +43,7 @@ module Spina
               redirect_to(spina.edit_blocks_admin_block_url(@block))
             end
           else
-            @block_templates = current_theme.try(:block_templates) || []
+            @block_templates = creatable_block_templates
             if params[:modal]
               @modal = true
               render(turbo_stream: turbo_stream.update(
@@ -116,7 +118,7 @@ module Spina
 
         def destroy
           unless @block.deletable?
-            flash[:error] = I18n.t("spina.blocks.cannot_delete_system_block")
+            flash[:error] = I18n.t("spina.blocks.cannot_be_deleted")
             redirect_to(spina.edit_blocks_admin_block_url(@block))
             return
           end
@@ -146,6 +148,16 @@ module Spina
             titles[bt[:name].to_s] = bt[:title].to_s
           end
           titles
+        end
+
+        # Returns block templates available for manual block creation,
+        # excluding templates reserved for layout (custom) blocks.
+        def creatable_block_templates
+          all_templates = current_theme.try(:block_templates) || []
+          layout_template_names = (current_theme.try(:custom_blocks) || [])
+            .map { |cb| cb[:block_template].to_s }.uniq
+
+          all_templates.reject { |bt| layout_template_names.include?(bt[:name].to_s) }
         end
 
         def block_params

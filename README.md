@@ -72,7 +72,7 @@ Spina::Theme.register do |theme|
     }
   ]
 
-  # Custom blocks (system blocks, created automatically during bootstrap)
+  # Custom blocks (layout blocks, created automatically during bootstrap)
   theme.custom_blocks = [
     { name: "header", title: "Header Block", block_template: "header", category: "heroes" },
     { name: "footer", title: "Footer Block", block_template: "footer", category: "cta" }
@@ -155,9 +155,9 @@ Then in your template:
 <% end %>
 ```
 
-## Custom blocks (system blocks)
+## Custom blocks (layout blocks)
 
-Custom blocks are non-deletable blocks that are automatically created during `rake spina:bootstrap`. They work similarly to Spina's `custom_pages` — once defined in the theme configuration, they are created on bootstrap and cannot be deleted through the admin interface.
+Custom blocks are non-deletable blocks that are automatically created during `rake spina:bootstrap`. They work similarly to Spina's `custom_pages` — once defined in the theme configuration, they are created on bootstrap and cannot be deleted through the admin interface. In the admin UI they are labeled as **Layout** blocks.
 
 ### Defining custom blocks
 
@@ -186,14 +186,15 @@ Custom blocks have two identifiers:
 - **`key`** — an immutable machine identifier (set from `name` in the config). Used by `render_custom_block`, `BlockReference` with `custom_block` option, and for bootstrap lookups. Cannot be changed after creation. Shown as read-only in the block settings tab.
 - **`name`** — the display name shown in the admin UI. Initially set from `title` (or `name.titleize` if `title` is omitted). Users can freely rename it without breaking any template references.
 
-Regular (non-system) blocks do not have a `key` — it is `nil` for them.
+Regular (non-layout) blocks do not have a `key` — it is `nil` for them.
 
 ### How it works
 
 - **Bootstrap**: Custom blocks are created (or updated) automatically whenever `Spina::Account` is saved — this includes `rake spina:bootstrap` and admin account edits. They are created with `deletable: false` and an immutable `key`.
 - **Idempotent**: Running bootstrap multiple times will not duplicate blocks. Existing blocks are found by `key` and updated. The display `name` is only set on initial creation — subsequent bootstraps preserve user edits to the display name.
-- **Deletion protection**: System blocks cannot be deleted through the admin UI or programmatically via `destroy`. The delete button is hidden in the block editor, and the controller rejects delete requests for system blocks.
-- **Admin UI**: System blocks are marked with a "System" badge in the block library. On page block lists, the remove button is hidden for system blocks. The `key` is displayed as read-only in the block settings tab.
+- **Deletion protection**: Layout blocks cannot be deleted through the admin UI or programmatically via `destroy`. In the block editor, the `...` menu shows "Block can't be deleted" (matching Spina's page behavior). The controller also rejects delete requests.
+- **Template restriction**: Block templates used by custom blocks are excluded from the "New block" form, preventing users from manually creating blocks with layout templates.
+- **Admin UI**: Layout blocks are marked with a **Layout** badge (right-aligned) in the block library. A **Layout blocks** filter is available in the template filter dropdown. On page block lists, the remove button is replaced with a "Layout" label. The `key` is displayed as read-only in the block settings tab.
 
 ### Using custom blocks in templates
 
@@ -258,9 +259,11 @@ The plugin adds:
 - Block library with template filter dropdown
 - Block editor with content fields (same as page editor)
 - Page Blocks management page (per-page block assignment and ordering)
-- **System** badge on non-deletable blocks in the block library
-- Delete button is hidden for system blocks
-- Immutable **key** shown as read-only in block settings for system blocks
+- **Layout** badge on non-deletable blocks in the block library (right-aligned)
+- **Layout blocks** filter in the template filter dropdown
+- `...` menu shows "Block can't be deleted" for layout blocks (like Spina pages)
+- Block templates used by layout blocks are hidden from the "New block" form
+- Immutable **key** shown as read-only in block settings for layout blocks
 
 ## Helper methods
 
@@ -268,7 +271,7 @@ The plugin adds:
 | --------------------------------------- | ------------------------------------------------------ |
 | `render_blocks(page)`                   | Render all blocks attached to a page via PageBlocks    |
 | `render_block(block)`                   | Render a single block using its template partial       |
-| `render_custom_block(key)`              | Render a custom (system) block by its immutable key    |
+| `render_custom_block(key)`              | Render a custom (layout) block by its immutable key    |
 | `block_content(block, :part_name)`      | Access a block's content                               |
 | `block_has_content?(block, :part_name)` | Check if a block has content                           |
 
