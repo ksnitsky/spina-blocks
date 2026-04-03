@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import Sortable from "libraries/sortablejs";
+import { positionDropdown } from "spina/utils/dropdown_position";
 
 export default class extends Controller {
   #abortController = null;
@@ -209,7 +210,7 @@ export default class extends Controller {
 
     // Reposition if dropdown is currently visible
     if (this.dropdownTarget.style.display !== "none") {
-      this.#positionDropdown();
+      positionDropdown(this.dropdownTarget);
     }
   }
 
@@ -255,12 +256,12 @@ export default class extends Controller {
   openDropdown() {
     if (this.dropdownTarget.style.display === "block") {
       // Already open, just reposition
-      this.#positionDropdown();
+      positionDropdown(this.dropdownTarget);
       return;
     }
 
     this.dropdownTarget.style.display = "block";
-    this.#positionDropdown();
+    positionDropdown(this.dropdownTarget);
 
     this.#abortController = new AbortController();
     const { signal } = this.#abortController;
@@ -273,7 +274,7 @@ export default class extends Controller {
     let scrollTimeout;
     const debouncedPosition = () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => this.#positionDropdown(), 100);
+      scrollTimeout = setTimeout(() => positionDropdown(this.dropdownTarget), 100);
     };
     window.addEventListener("scroll", debouncedPosition, {
       capture: true,
@@ -296,31 +297,6 @@ export default class extends Controller {
   }
 
   // --- Private ---
-
-  #positionDropdown() {
-    const dropdown = this.dropdownTarget;
-    const container = dropdown.parentElement;
-    const containerRect = container.getBoundingClientRect();
-    const dropdownHeight = dropdown.offsetHeight;
-    const viewportHeight = window.innerHeight;
-
-    const spaceBelow = viewportHeight - containerRect.bottom;
-    const spaceAbove = containerRect.top;
-
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
-      // Not enough space below and more space above, show above
-      dropdown.style.bottom = "100%";
-      dropdown.style.top = "auto";
-      dropdown.style.marginBottom = "4px";
-      dropdown.style.marginTop = "0";
-    } else {
-      // Default: show below
-      dropdown.style.bottom = "auto";
-      dropdown.style.top = "100%";
-      dropdown.style.marginTop = "4px";
-      dropdown.style.marginBottom = "0";
-    }
-  }
 
   #observeModal() {
     const modalFrame = document.querySelector("turbo-frame[id='modal']");
