@@ -43,6 +43,7 @@ module Spina
         app.config.assets.precompile += %w[
           spina/controllers/block_collection_controller.js
           spina/controllers/content_blocks_controller.js
+          spina/controllers/nested_content_blocks_controller.js
           spina/utils/dropdown_position.js
         ] if defined?(Sprockets)
       end
@@ -54,6 +55,7 @@ module Spina
             Spina::Parts::BlockCollection,
             Spina::Parts::ContentBlocks,
             Spina::Parts::ContentBlock,
+            Spina::Parts::NestedContentBlocks,
           )
         end
       end

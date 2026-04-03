@@ -1,0 +1,75 @@
+<%#
+  Admin form for Spina::Parts::NestedContentBlocks.
+  Same as ContentBlocks but uses "nested-content-blocks" Stimulus controller
+  to avoid scope conflicts when rendered inside Repeaters or other ContentBlocks.
+  Reuses content_blocks/_fields.html.erb for individual block rendering.
+%>
+<% available_templates = f.object.available_templates(current_theme) %>
+
+<div class="mt-4" data-controller="nested-content-blocks">
+  <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
+  <% if f.object.hint.present? %>
+    <div class="text-gray-400 text-sm mb-2"><%= f.object.hint %></div>
+  <% end %>
+
+  <%# List of existing content blocks %>
+  <div data-nested-content-blocks-target="list" class="space-y-3 mb-4">
+    <% (f.object.content || []).each do |content_block| %>
+      <%= f.fields_for :content, [content_block], child_index: content_block.object_id do |ff| %>
+        <%= render "spina/admin/parts/content_blocks/fields", f: ff, stimulus_controller: "nested-content-blocks" %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# Empty state %>
+  <div data-nested-content-blocks-target="emptyMessage"
+       class="text-sm text-gray-400 italic py-3 text-center"
+       style="<%= (f.object.content || []).any? ? 'display:none' : '' %>">
+    <%= t('spina.content_blocks.empty') %>
+  </div>
+
+  <%# Add block button with type picker dropdown %>
+  <% if available_templates.any? %>
+    <div class="relative">
+      <button type="button"
+              class="btn btn-default text-sm"
+              data-action="nested-content-blocks#toggleTypeMenu">
+        <svg class="w-4 h-4 mr-1.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <%= t('spina.content_blocks.add_block') %>
+      </button>
+
+      <div data-nested-content-blocks-target="typeMenu"
+           class="absolute z-10 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg py-1"
+           style="display:none">
+        <% available_templates.each do |template| %>
+          <button type="button"
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  data-action="nested-content-blocks#addBlock"
+                  data-block-type="<%= template[:name] %>">
+            <%= template[:title] || template[:name].titleize %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Pre-rendered templates for each block type (used by Stimulus to clone) %>
+  <% available_templates.each do |template| %>
+    <%
+      content_block = Spina::Parts::ContentBlock.new(
+        name: f.object.name,
+        block_type: template[:name].to_s
+      )
+      child_index_placeholder = content_block.object_id.to_s
+    %>
+    <template data-nested-content-blocks-target="blockTemplate"
+              data-block-type="<%= template[:name] %>"
+              data-child-index="<%= child_index_placeholder %>">
+      <%= f.fields_for(:content, [content_block], child_index: child_index_placeholder) do |ff| %>
+        <%= render "spina/admin/parts/content_blocks/fields", f: ff, stimulus_controller: "nested-content-blocks" %>
+      <% end %>
+    </template>
+  <% end %>
+</div>
