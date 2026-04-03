@@ -1,13 +1,17 @@
 <%#
   Renders form fields for a single ContentBlock item.
   Looks up the content_block_template by block_type to determine which parts to render.
+
+  Accepts an optional `stimulus_controller` local to support nested contexts.
+  Defaults to "content-blocks".
 %>
+<% sc = local_assigns[:stimulus_controller] || "content-blocks" %>
 <% template_config = current_theme.content_block_templates&.find { |t| t[:name].to_s == f.object.block_type.to_s } || {} %>
 <% template_title = template_config[:title] || f.object.block_type&.titleize || "Block" %>
 <% parts = template_config[:parts] || [] %>
 
 <div class="border border-gray-200 rounded-md bg-white shadow-sm"
-     data-content-blocks-target="block"
+     data-<%= sc %>-target="block"
      data-block-type="<%= f.object.block_type %>">
 
   <%= f.hidden_field :name %>
@@ -15,7 +19,7 @@
 
   <%# Header: drag handle, type label (clickable to collapse), delete with confirm %>
   <div class="flex items-center px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-md cursor-pointer select-none"
-       data-action="click->content-blocks#toggleCollapse">
+       data-action="click-><%= sc %>#toggleCollapse">
     <button type="button" data-sortable-handle
             class="mr-3 text-gray-300 hover:text-gray-500 cursor-grab">
       <svg class="w-4 h-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -27,7 +31,7 @@
 
     <button type="button"
             class="ml-3 text-gray-300 hover:text-red-500 transition-colors"
-            data-action="click->content-blocks#removeBlock:stop"
+            data-action="click-><%= sc %>#removeBlock:stop"
             title="<%= t('spina.content_blocks.remove') %>">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -36,7 +40,7 @@
   </div>
 
   <%# Content: form fields for this block's parts %>
-  <div class="px-4 pb-4" data-content-blocks-target="blockContent">
+  <div class="px-4 pb-4" data-<%= sc %>-target="blockContent">
     <% if parts.any? %>
       <%= f.fields_for :parts, build_parts(f.object, parts) do |ff| %>
         <%= ff.hidden_field :title %>
