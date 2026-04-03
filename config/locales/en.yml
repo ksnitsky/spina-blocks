@@ -43,6 +43,11 @@ en:
     block_categories:
       saved: "Category saved"
       couldnt_be_saved: "Category couldn't be saved"
+    content_blocks:
+      add_block: "Add block"
+      remove: "Remove"
+      empty: 'No content blocks yet. Click "Add block" to get started.'
+      no_template_found: "Unknown block type: %{type}"
     page_blocks:
       title: "Page Blocks"
       add_block: "Add block"

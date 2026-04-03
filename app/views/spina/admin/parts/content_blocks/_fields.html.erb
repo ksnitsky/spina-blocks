@@ -1,0 +1,53 @@
+<%#
+  Renders form fields for a single ContentBlock item.
+  Looks up the content_block_template by block_type to determine which parts to render.
+%>
+<% template_config = current_theme.content_block_templates&.find { |t| t[:name].to_s == f.object.block_type.to_s } || {} %>
+<% template_title = template_config[:title] || f.object.block_type&.titleize || "Block" %>
+<% parts = template_config[:parts] || [] %>
+
+<div class="border border-gray-200 rounded-md bg-white shadow-sm"
+     data-content-blocks-target="block"
+     data-block-type="<%= f.object.block_type %>">
+
+  <%= f.hidden_field :name %>
+  <%= f.hidden_field :block_type %>
+
+  <%# Header: drag handle, type label (clickable to collapse), delete with confirm %>
+  <div class="flex items-center px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-md cursor-pointer select-none"
+       data-action="click->content-blocks#toggleCollapse">
+    <button type="button" data-sortable-handle
+            class="mr-3 text-gray-300 hover:text-gray-500 cursor-grab">
+      <svg class="w-4 h-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+        <path d="M432 288H16c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16h416c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16zm0-112H16c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16h416c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16z"/>
+      </svg>
+    </button>
+
+    <span class="flex-1 text-sm font-medium text-gray-700"><%= template_title %></span>
+
+    <button type="button"
+            class="ml-3 text-gray-300 hover:text-red-500 transition-colors"
+            data-action="click->content-blocks#removeBlock:stop"
+            title="<%= t('spina.content_blocks.remove') %>">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <%# Content: form fields for this block's parts %>
+  <div class="px-4 pb-4" data-content-blocks-target="blockContent">
+    <% if parts.any? %>
+      <%= f.fields_for :parts, build_parts(f.object, parts) do |ff| %>
+        <%= ff.hidden_field :title %>
+        <%= ff.hidden_field :type, value: ff.object.class %>
+        <%= ff.hidden_field :name %>
+        <%= render "spina/admin/parts/#{parts_partial_namespace(ff.object.class.to_s)}/form", f: ff %>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-gray-400 italic mt-4">
+        <%= t('spina.content_blocks.no_template_found', type: f.object.block_type) %>
+      </p>
+    <% end %>
+  </div>
+</div>

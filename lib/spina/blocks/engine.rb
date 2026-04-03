@@ -12,7 +12,7 @@ module Spina
         end
 
         ::Spina::Theme.class_eval do
-          attr_accessor :block_templates, :block_categories, :custom_blocks
+          attr_accessor :block_templates, :block_categories, :custom_blocks, :content_block_templates
 
           unless method_defined?(:initialize_without_blocks)
             alias_method :initialize_without_blocks, :initialize
@@ -22,6 +22,7 @@ module Spina
               @block_templates = []
               @block_categories = []
               @custom_blocks = []
+              @content_block_templates = []
             end
           end
         end
@@ -32,11 +33,18 @@ module Spina
           pin_all_from Spina::Blocks::Engine.root.join("app/assets/javascripts/spina/controllers"),
             under: "controllers",
             to: "spina/controllers"
+          pin_all_from Spina::Blocks::Engine.root.join("app/assets/javascripts/spina/utils"),
+            under: "spina/utils",
+            to: "spina/utils"
         end
       end
 
       initializer "spina.blocks.assets.precompile" do |app|
-        app.config.assets.precompile += ["spina/controllers/block_collection_controller.js"] if defined?(Sprockets)
+        app.config.assets.precompile += %w[
+          spina/controllers/block_collection_controller.js
+          spina/controllers/content_blocks_controller.js
+          spina/utils/dropdown_position.js
+        ] if defined?(Sprockets)
       end
 
       initializer "spina.blocks.register_parts" do
@@ -44,6 +52,8 @@ module Spina
           ::Spina::Part.register(
             Spina::Parts::BlockReference,
             Spina::Parts::BlockCollection,
+            Spina::Parts::ContentBlocks,
+            Spina::Parts::ContentBlock,
           )
         end
       end
