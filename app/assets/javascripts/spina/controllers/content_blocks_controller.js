@@ -59,7 +59,7 @@ export default class extends Controller {
     event.preventDefault()
     if (!confirm("Are you sure you want to remove this block?")) return
 
-    const block = event.currentTarget.closest("[data-content-blocks-target='block']")
+    const block = event.currentTarget.closest(`[data-${this.identifier}-target='block']`)
     if (block) {
       block.remove()
       this._updateEmptyMessage()
@@ -92,10 +92,10 @@ export default class extends Controller {
 
   toggleCollapse(event) {
     event.preventDefault()
-    const block = event.currentTarget.closest("[data-content-blocks-target='block']")
+    const block = event.currentTarget.closest(`[data-${this.identifier}-target='block']`)
     if (!block) return
 
-    const content = block.querySelector("[data-content-blocks-target='blockContent']")
+    const content = block.querySelector(`[data-${this.identifier}-target='blockContent']`)
     if (content) {
       content.style.display = content.style.display === "none" ? "" : "none"
     }
