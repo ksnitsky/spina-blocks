@@ -1,12 +1,19 @@
 name: Release to RubyGems
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
     branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
     name: Push gem to RubyGems.org
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     permissions:
@@ -17,6 +24,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -41,10 +49,30 @@ jobs:
         uses: rubygems/release-gem@v1
         if: steps.check_tag.outputs.exists == 'false'
 
+      - name: Extract changelog section
+        id: changelog
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.check_tag.outputs.version }}"
+          : > release_notes.md
+          if [ -f CHANGELOG.md ]; then
+            awk -v ver="$VERSION" '
+              $0 ~ "^## \\[" ver "\\]" { p=1; next }
+              p && /^## \[/ { exit }
+              p { print }
+            ' CHANGELOG.md > release_notes.md
+          fi
+          if [ -s release_notes.md ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release
         if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.check_tag.outputs.version }}
           name: v${{ steps.check_tag.outputs.version }}
-          generate_release_notes: true
+          body_path: release_notes.md
+          generate_release_notes: ${{ steps.changelog.outputs.found != 'true' }}
