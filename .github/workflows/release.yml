@@ -5,6 +5,13 @@ on:
     workflows: ["Tests"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+
+env:
+  # rubygems/release-gem@v1 still pulls a Node 20 sub-action; opt into
+  # the Node 24 runtime to silence the deprecation warning until the
+  # upstream action is updated.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 concurrency:
   group: release-${{ github.ref }}
@@ -13,7 +20,7 @@ concurrency:
 jobs:
   release:
     name: Push gem to RubyGems.org
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     permissions:
