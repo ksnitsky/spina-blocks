@@ -155,6 +155,34 @@ Then in your template:
 <% end %>
 ```
 
+### Yielding content into block templates
+
+`render_block` and `render_custom_block` forward an optional content block to the partial, so block templates can expose `<%= yield %>` slots that callers fill at render time. This lets a single shared block adapt per-page without splitting it into template variants.
+
+In the block partial:
+
+```erb
+<%# app/views/my_theme/blocks/_funnel_form.html.erb %>
+<section class="funnel-form">
+  <% if block_given? %>
+    <%= yield %>
+  <% end %>
+  <%# ...rest of the form... %>
+</section>
+```
+
+In the page that includes it:
+
+```erb
+<%= render_block(content(:funnel_form_block)) do %>
+  <% if (banner = content(:discount_banner_section))&.content(:enabled) %>
+    <%= render "default/shared/blocks/discount_banner", block: banner %>
+  <% end %>
+<% end %>
+```
+
+Pages without anything to inject just call `render_block(...)` without a block — `block_given?` is `false` and the slot stays empty.
+
 ## Custom blocks (layout blocks)
 
 Custom blocks are non-deletable blocks that are automatically created during `rake spina:bootstrap`. They work similarly to Spina's `custom_pages` — once defined in the theme configuration, they are created on bootstrap and cannot be deleted through the admin interface. In the admin UI they are labeled as **Layout** blocks.
@@ -270,8 +298,8 @@ The plugin adds:
 | Helper                                  | Description                                            |
 | --------------------------------------- | ------------------------------------------------------ |
 | `render_blocks(page)`                   | Render all blocks attached to a page via PageBlocks    |
-| `render_block(block)`                   | Render a single block using its template partial       |
-| `render_custom_block(key)`              | Render a custom (layout) block by its immutable key    |
+| `render_block(block, &content_block)`   | Render a single block using its template partial; an optional content block is forwarded to the partial via `yield` |
+| `render_custom_block(key, &content_block)` | Render a custom (layout) block by its immutable key; forwards a content block to the partial like `render_block`  |
 | `block_content(block, :part_name)`      | Access a block's content                               |
 | `block_has_content?(block, :part_name)` | Check if a block has content                           |
 
