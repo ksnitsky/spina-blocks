@@ -24,7 +24,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha }}
+          # Check out the branch (not a detached SHA) so `rake release`'s
+          # `git push origin refs/heads/<current_branch>` resolves correctly.
+          ref: ${{ github.event.workflow_run.head_branch || 'main' }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
