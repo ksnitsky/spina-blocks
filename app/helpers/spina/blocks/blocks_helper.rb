@@ -17,9 +17,13 @@ module Spina
         end
       end
 
-      # Render a single block using its block_template partial
-      # Usage: <%= render_block(some_block) %>
-      def render_block(block)
+      # Render a single block using its block_template partial.
+      # An optional content block is forwarded to the partial, so block
+      # templates can expose `<%= yield %>` slots for callers to inject markup.
+      # Usage:
+      #   <%= render_block(some_block) %>
+      #   <%= render_block(some_block) do %>...<% end %>
+      def render_block(block, &content_block)
         return unless block&.active?
 
         current_spina_theme = Spina::Current.theme || current_theme
@@ -28,7 +32,10 @@ module Spina
         partial_path = "#{theme_name}/blocks/#{block.block_template}"
 
         if lookup_context.exists?(partial_path, [], true)
-          render(partial: partial_path, locals: { block: block })
+          # Use the string-form `render(string, locals, &block)` so passing a
+          # content block doesn't trigger `render`'s implicit layout branch
+          # (which would treat `:partial` as the wrapped content instead).
+          render(partial_path, { block: block }, &content_block)
         else
           render_block_fallback(block)
         end
@@ -46,10 +53,12 @@ module Spina
       end
 
       # Render a custom (system) block by its unique key
-      # Usage: <%= render_custom_block("header") %>
-      def render_custom_block(key)
+      # Usage:
+      #   <%= render_custom_block("header") %>
+      #   <%= render_custom_block("header") do %>...<% end %>
+      def render_custom_block(key, &content_block)
         block = Spina::Blocks::Block.find_by(key: key)
-        render_block(block) if block
+        render_block(block, &content_block) if block
       end
 
       private
