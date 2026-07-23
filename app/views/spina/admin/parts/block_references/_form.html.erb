@@ -11,40 +11,43 @@
   end
   allow_inline = part.custom_block_name.blank? && inline_parts.any?
   current_mode = part.inline? ? "inline" : "reference"
+
+  # Mirrors Spina::Pages::TabButtonComponent so the toggle reads as a Spina tab bar.
+  tab_button_classes = "block px-3 leading-relaxed py-1 rounded-md hover:text-gray-800 " \
+                       "font-medium text-sm flex items-center whitespace-nowrap"
 %>
 
-<div class="mt-6" <%= allow_inline ? 'data-controller=block-reference-mode'.html_safe : ''.html_safe %>>
+<div class="mt-6"
+     data-controller="block-reference-mode"
+     data-block-reference-mode-active="cursor-default text-gray-900 bg-spina-dark/10"
+     data-block-reference-mode-inactive="cursor-pointer bg-transparent text-gray-400 border-transparent">
   <label class="block text-sm leading-5 font-medium text-gray-700"><%= part.title %></label>
   <% if part.hint.present? %>
     <div class="text-gray-400 text-sm"><%= part.hint %></div>
   <% end %>
 
-  <% unless allow_inline %>
+  <% if allow_inline %>
+    <%= f.hidden_field :mode, value: current_mode, data: { block_reference_mode_target: "modeField" } %>
+
+    <div class="mt-2 inline-flex w-auto rounded-md bg-white" role="tablist">
+      <% { "reference" => t("spina.blocks.mode_reference"), "inline" => t("spina.blocks.mode_inline") }.each do |mode_value, label| %>
+        <button type="button"
+                class="<%= tab_button_classes %>"
+                role="tab"
+                data-mode="<%= mode_value %>"
+                data-block-reference-mode-target="button"
+                data-action="block-reference-mode#switch">
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+  <% else %>
     <%# Preserve any existing mode value when the toggle isn't shown. %>
     <%= f.hidden_field :mode %>
   <% end %>
 
-  <% if allow_inline %>
-    <div class="mt-2 inline-flex rounded-md border border-gray-200 p-0.5 bg-gray-50 text-sm">
-      <label class="px-3 py-1 rounded cursor-pointer">
-        <%= f.radio_button :mode, "reference",
-              class: "sr-only",
-              checked: current_mode == "reference",
-              data: { block_reference_mode_role: "mode", action: "change->block-reference-mode#switch" } %>
-        <%= t("spina.blocks.mode_reference") %>
-      </label>
-      <label class="px-3 py-1 rounded cursor-pointer">
-        <%= f.radio_button :mode, "inline",
-              class: "sr-only",
-              checked: current_mode == "inline",
-              data: { block_reference_mode_role: "mode", action: "change->block-reference-mode#switch" } %>
-        <%= t("spina.blocks.mode_inline") %>
-      </label>
-    </div>
-  <% end %>
-
   <%# ---- Reference pane: pick a shared block (or show a fixed custom block) ---- %>
-  <div class="mt-1" data-block-reference-mode-target="referencePane">
+  <div class="<%= allow_inline ? "mt-4" : "mt-1" %>" data-block-reference-mode-target="referencePane">
     <% if part.custom_block_name.present? %>
       <% custom_block = part.custom_block_record %>
       <% if custom_block %>
@@ -69,7 +72,7 @@
       inline_rc = part.inline_content ||
                   Spina::Parts::RepeaterContent.new(name: part.name, title: part.title)
     %>
-    <div class="mt-1" data-block-reference-mode-target="inlinePane">
+    <div class="mt-4" data-block-reference-mode-target="inlinePane">
       <%# Persisted with the content so rendering doesn't depend on theme options. %>
       <%= f.hidden_field :inline_block_template, value: template_name %>
 
