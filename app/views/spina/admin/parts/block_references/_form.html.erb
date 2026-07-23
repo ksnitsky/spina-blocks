@@ -1,11 +1,72 @@
-<div class="mt-6">
-  <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
-  <% if f.object.hint.present? %>
-    <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
+<%
+  part = f.object
+
+  # Prefer the template the theme binds this part to; fall back to the one the
+  # stored content was filled in against, so dropping the option from the theme
+  # leaves existing inline content editable instead of silently unrenderable.
+  template_name = part.block_template_name.presence || part.inline_block_template.presence
+
+  inline_parts = []
+  if template_name.present?
+    block_template = current_theme.block_templates.find { |bt| bt[:name].to_s == template_name.to_s }
+    inline_parts = block_template&.dig(:parts) || []
+  end
+
+  # Inline mode needs a known field set, and never applies to a fixed system block.
+  allow_inline = part.custom_block_name.blank? && inline_parts.any?
+  current_mode = part.inline? ? "inline" : "reference"
+
+  # Mirrors Spina::Pages::TabButtonComponent and the tabs controller's class
+  # lists, so the toggle reads as a Spina tab bar. Applied server-side too, so
+  # the current mode is correct before (and without) Stimulus.
+  tab_button_classes = "block px-3 leading-relaxed py-1 rounded-md hover:text-gray-800 " \
+                       "font-medium text-sm flex items-center whitespace-nowrap"
+  active_classes = "cursor-default text-gray-900 bg-spina-dark/10"
+  inactive_classes = "cursor-pointer bg-transparent text-gray-400 border-transparent"
+%>
+
+<div class="mt-6"
+     data-controller="block-reference-mode"
+     data-block-reference-mode-active="<%= active_classes %>"
+     data-block-reference-mode-inactive="<%= inactive_classes %>">
+  <label class="block text-sm leading-5 font-medium text-gray-700"><%= part.title %></label>
+  <% if part.hint.present? %>
+    <div class="text-gray-400 text-sm"><%= part.hint %></div>
   <% end %>
-  <div class="mt-1">
-    <% if f.object.custom_block_name.present? %>
-      <% custom_block = f.object.custom_block_record %>
+
+  <% if allow_inline %>
+    <%= f.hidden_field :mode, value: current_mode, data: { block_reference_mode_target: "modeField" } %>
+
+    <div class="mt-2 inline-flex w-auto rounded-md bg-white">
+      <% { "reference" => t("spina.blocks.mode_reference"), "inline" => t("spina.blocks.mode_inline") }.each do |mode_value, label| %>
+        <button type="button"
+                class="<%= tab_button_classes %> <%= mode_value == current_mode ? active_classes : inactive_classes %>"
+                data-mode="<%= mode_value %>"
+                data-block-reference-mode-target="button"
+                data-action="block-reference-mode#switch">
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+  <% else %>
+    <%= f.hidden_field :mode %>
+
+    <% if part.inline_content.present? %>
+      <%# No field set to render (template gone from the theme), but the content
+          is still stored and may still be rendering — round-trip it verbatim so
+          saving this page doesn't drop it. %>
+      <%= f.hidden_field :inline_block_template %>
+      <%= f.hidden_field :inline_content_json, value: part.inline_content.as_json.to_json %>
+    <% end %>
+  <% end %>
+
+  <%# ---- Reference pane: pick a shared block (or show a fixed custom block) ----
+      Always rendered, so switching modes stays client-side. %>
+  <div class="<%= allow_inline ? "mt-4" : "mt-1" %>"
+       data-block-reference-mode-target="referencePane"
+       <%= "hidden" if allow_inline && current_mode != "reference" %>>
+    <% if part.custom_block_name.present? %>
+      <% custom_block = part.custom_block_record %>
       <% if custom_block %>
         <%= link_to custom_block.name,
               spina.edit_blocks_admin_block_path(custom_block),
@@ -14,11 +75,38 @@
         <span class="text-sm text-red-500"><%= t('spina.blocks.custom_block_not_found') %></span>
       <% end %>
     <% else %>
-      <% blocks = f.object.available_blocks %>
+      <% blocks = part.available_blocks %>
       <%= f.select :block_id,
             blocks.map { |b| [b.name, b.id] },
             {include_blank: t('spina.blocks.select_block')},
             class: "form-select text-sm w-full shadow-xs" %>
     <% end %>
   </div>
+
+  <%# ---- Inline pane: fill the block template's fields on the page itself ---- %>
+  <% if allow_inline %>
+    <%
+      inline_rc = part.inline_content ||
+                  Spina::Parts::RepeaterContent.new(name: part.name, title: part.title)
+    %>
+    <div class="mt-4"
+         data-block-reference-mode-target="inlinePane"
+         <%= "hidden" if current_mode != "inline" %>>
+      <%# Persisted with the content so rendering doesn't depend on theme options. %>
+      <%= f.hidden_field :inline_block_template, value: template_name %>
+
+      <%= f.fields_for :inline_content, inline_rc do |ff| %>
+        <%= ff.hidden_field :name, value: part.name %>
+        <%= ff.hidden_field :title, value: part.title %>
+
+        <%= ff.fields_for :parts, build_parts(ff.object, inline_parts) do |fff| %>
+          <%= fff.hidden_field :type, value: fff.object.class.name %>
+          <%= fff.hidden_field :name %>
+          <%= fff.hidden_field :title %>
+
+          <%= render "spina/admin/parts/#{parts_partial_namespace(fff.object.class.to_s)}/form", f: fff %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
 </div>

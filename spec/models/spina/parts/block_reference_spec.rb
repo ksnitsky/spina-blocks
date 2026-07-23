@@ -96,6 +96,136 @@ RSpec.describe(Spina::Parts::BlockReference, type: :model) do
     end
   end
 
+  describe "inline mode" do
+    def filled_inline_content
+      rc = Spina::Parts::RepeaterContent.new
+      rc.parts = [Spina::Parts::Line.new(name: "section_title", content: "Reviews")]
+      rc
+    end
+
+    def empty_inline_content
+      rc = Spina::Parts::RepeaterContent.new
+      rc.parts = [Spina::Parts::Line.new(name: "section_title")]
+      rc
+    end
+
+    describe "#inline?" do
+      it "is false when mode is nil (backward compatible)" do
+        part.mode = nil
+        expect(part.inline?).to(be(false))
+      end
+
+      it "is false when mode is reference" do
+        part.mode = "reference"
+        expect(part.inline?).to(be(false))
+      end
+
+      it "is true when mode is inline" do
+        part.mode = "inline"
+        expect(part.inline?).to(be(true))
+      end
+    end
+
+    describe "#block_template_name" do
+      it "reads block_template from options (symbol or string key)" do
+        part.options = { block_template: "testimonials_block" }
+        expect(part.block_template_name).to(eq("testimonials_block"))
+
+        part.options = { "block_template" => "testimonials_block" }
+        expect(part.block_template_name).to(eq("testimonials_block"))
+      end
+
+      it "returns nil without options" do
+        part.options = nil
+        expect(part.block_template_name).to(be_nil)
+      end
+    end
+
+    describe "#content" do
+      before { part.options = { block_template: "testimonials_block" } }
+
+      it "returns an InlineBlock bound to the template when filled" do
+        part.mode = "inline"
+        part.inline_content = filled_inline_content
+
+        result = part.content
+        expect(result).to(be_a(Spina::Blocks::InlineBlock))
+        expect(result.block_template).to(eq("testimonials_block"))
+        expect(result.content(:section_title)).to(eq("Reviews"))
+      end
+
+      it "uses the persisted inline_block_template when no options are attached" do
+        part.options = nil
+        part.mode = "inline"
+        part.inline_block_template = "testimonials_block"
+        part.inline_content = filled_inline_content
+
+        result = part.content
+        expect(result).to(be_a(Spina::Blocks::InlineBlock))
+        expect(result.block_template).to(eq("testimonials_block"))
+      end
+
+      it "prefers the persisted template over the options template" do
+        part.options = { block_template: "stale_block" }
+        part.mode = "inline"
+        part.inline_block_template = "testimonials_block"
+        part.inline_content = filled_inline_content
+
+        expect(part.content.block_template).to(eq("testimonials_block"))
+      end
+
+      it "treats an unattached image as unfilled" do
+        # Image#content returns the part itself and overrides #present? to check
+        # for an attached blob, so it is blank without being empty.
+        rc = Spina::Parts::RepeaterContent.new
+        rc.parts = [Spina::Parts::Image.new(name: "testimonial_avatar")]
+
+        part.mode = "inline"
+        part.inline_content = rc
+
+        expect(part.content).to(be_nil)
+      end
+
+      it "treats a part deliberately set to false as filled" do
+        false_part = instance_double(Spina::Parts::Line, content: false)
+
+        expect(part.send(:part_filled?, false_part)).to(be(true))
+      end
+
+      it "returns nil when inline content has no filled parts" do
+        part.mode = "inline"
+        part.inline_content = empty_inline_content
+
+        expect(part.content).to(be_nil)
+      end
+
+      it "returns nil when inline content is absent" do
+        part.mode = "inline"
+        part.inline_content = nil
+
+        expect(part.content).to(be_nil)
+      end
+
+      it "ignores block_id while in inline mode" do
+        block = create(:spina_blocks_block, active: true)
+        part.mode = "inline"
+        part.block_id = block.id
+        part.inline_content = filled_inline_content
+
+        expect(part.content).to(be_a(Spina::Blocks::InlineBlock))
+      end
+
+      it "uses block_id when mode is reference despite inline content present" do
+        block = create(:spina_blocks_block, active: true)
+        part.mode = "reference"
+        part.block_id = block.id
+        part.inline_content = filled_inline_content
+
+        expect(part.content).to(eq(block))
+      end
+    end
+  end
+
   describe "#custom_block_name" do
     it "returns nil when options is nil" do
       part.options = nil
