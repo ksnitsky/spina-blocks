@@ -174,6 +174,24 @@ RSpec.describe(Spina::Parts::BlockReference, type: :model) do
         expect(part.content.block_template).to(eq("testimonials_block"))
       end
 
+      it "treats an unattached image as unfilled" do
+        # Image#content returns the part itself and overrides #present? to check
+        # for an attached blob, so it is blank without being empty.
+        rc = Spina::Parts::RepeaterContent.new
+        rc.parts = [Spina::Parts::Image.new(name: "testimonial_avatar")]
+
+        part.mode = "inline"
+        part.inline_content = rc
+
+        expect(part.content).to(be_nil)
+      end
+
+      it "treats a part deliberately set to false as filled" do
+        false_part = instance_double(Spina::Parts::Line, content: false)
+
+        expect(part.send(:part_filled?, false_part)).to(be(true))
+      end
+
       it "returns nil when inline content has no filled parts" do
         part.mode = "inline"
         part.inline_content = empty_inline_content

@@ -63,18 +63,48 @@ module Spina
         ::Spina::Blocks::Block.find_by(key: custom_block_name)
       end
 
+      # Accepts inline content as a JSON string so the form can round-trip
+      # content it cannot render fields for — e.g. the block template is no
+      # longer registered in the theme. Without it the next save would drop
+      # stored content that is still rendering on the site.
+      def inline_content_json=(raw)
+        return if raw.blank?
+
+        parsed = JSON.parse(raw)
+        self.inline_content = parsed if parsed.is_a?(Hash)
+      rescue StandardError
+        # Best-effort restore of a value that arrives from a client-controlled
+        # hidden field: malformed JSON, or a payload naming a part type attr_json
+        # won't build, must leave the stored content alone rather than break the
+        # page save.
+        nil
+      end
+
       private
 
       # Wraps inline content so it renders through the same block template partial
       # as a shared block. Returns nil when nothing has been filled in, so callers
       # using `render_block(content)` render nothing (matching an empty reference).
       def inline_block
-        return nil if inline_content.blank?
+        template = inline_block_template.presence || block_template_name.presence
+        # Without a template there is no partial to render; bail out rather than
+        # let render_block fall through to its empty placeholder wrapper.
+        return if template.blank?
+        return if inline_content.blank?
+        return if Array(inline_content.parts).none? { |part| part_filled?(part) }
 
-        parts = Array(inline_content.parts)
-        return nil if parts.none? { |part| part.content.present? }
+        ::Spina::Blocks::InlineBlock.new(inline_content, template)
+      end
 
-        ::Spina::Blocks::InlineBlock.new(inline_content, inline_block_template.presence || block_template_name)
+      # Defers to each part's own `present?`, which Image and Attachment override
+      # to check for an attached blob. The one case `present?` gets wrong here is
+      # a boolean-shaped part deliberately set to false — empty by Rails' rules,
+      # filled by the editor's.
+      def part_filled?(part)
+        value = part.content
+        return true if value == false
+
+        value.present?
       end
     end
   end
