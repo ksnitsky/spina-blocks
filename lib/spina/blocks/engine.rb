@@ -42,6 +42,7 @@ module Spina
       initializer "spina.blocks.assets.precompile" do |app|
         app.config.assets.precompile += %w[
           spina/controllers/block_collection_controller.js
+          spina/controllers/block_reference_mode_controller.js
           spina/controllers/content_blocks_controller.js
           spina/controllers/nested_content_blocks_controller.js
           spina/utils/dropdown_position.js

@@ -1,11 +1,52 @@
-<div class="mt-6">
-  <label class="block text-sm leading-5 font-medium text-gray-700"><%= f.object.title %></label>
-  <% if f.object.hint.present? %>
-    <div class="text-gray-400 text-sm"><%= f.object.hint %></div>
+<%
+  part = f.object
+  template_name = part.block_template_name
+
+  # Inline mode is only offered when the reference is bound to a block template
+  # (so we know which fields to render) and it isn't a fixed custom/system block.
+  inline_parts = []
+  if template_name.present? && defined?(current_theme) && current_theme.respond_to?(:block_templates)
+    block_template = current_theme.block_templates.find { |bt| bt[:name].to_s == template_name.to_s }
+    inline_parts = block_template&.dig(:parts) || []
+  end
+  allow_inline = part.custom_block_name.blank? && inline_parts.any?
+  current_mode = part.inline? ? "inline" : "reference"
+%>
+
+<div class="mt-6" <%= allow_inline ? 'data-controller=block-reference-mode'.html_safe : ''.html_safe %>>
+  <label class="block text-sm leading-5 font-medium text-gray-700"><%= part.title %></label>
+  <% if part.hint.present? %>
+    <div class="text-gray-400 text-sm"><%= part.hint %></div>
   <% end %>
-  <div class="mt-1">
-    <% if f.object.custom_block_name.present? %>
-      <% custom_block = f.object.custom_block_record %>
+
+  <% unless allow_inline %>
+    <%# Preserve any existing mode value when the toggle isn't shown. %>
+    <%= f.hidden_field :mode %>
+  <% end %>
+
+  <% if allow_inline %>
+    <div class="mt-2 inline-flex rounded-md border border-gray-200 p-0.5 bg-gray-50 text-sm">
+      <label class="px-3 py-1 rounded cursor-pointer">
+        <%= f.radio_button :mode, "reference",
+              class: "sr-only",
+              checked: current_mode == "reference",
+              data: { block_reference_mode_role: "mode", action: "change->block-reference-mode#switch" } %>
+        <%= t("spina.blocks.mode_reference") %>
+      </label>
+      <label class="px-3 py-1 rounded cursor-pointer">
+        <%= f.radio_button :mode, "inline",
+              class: "sr-only",
+              checked: current_mode == "inline",
+              data: { block_reference_mode_role: "mode", action: "change->block-reference-mode#switch" } %>
+        <%= t("spina.blocks.mode_inline") %>
+      </label>
+    </div>
+  <% end %>
+
+  <%# ---- Reference pane: pick a shared block (or show a fixed custom block) ---- %>
+  <div class="mt-1" data-block-reference-mode-target="referencePane">
+    <% if part.custom_block_name.present? %>
+      <% custom_block = part.custom_block_record %>
       <% if custom_block %>
         <%= link_to custom_block.name,
               spina.edit_blocks_admin_block_path(custom_block),
@@ -14,11 +55,33 @@
         <span class="text-sm text-red-500"><%= t('spina.blocks.custom_block_not_found') %></span>
       <% end %>
     <% else %>
-      <% blocks = f.object.available_blocks %>
+      <% blocks = part.available_blocks %>
       <%= f.select :block_id,
             blocks.map { |b| [b.name, b.id] },
             {include_blank: t('spina.blocks.select_block')},
             class: "form-select text-sm w-full shadow-xs" %>
     <% end %>
   </div>
+
+  <%# ---- Inline pane: fill the block template's fields on the page itself ---- %>
+  <% if allow_inline %>
+    <%
+      inline_rc = part.inline_content ||
+                  Spina::Parts::RepeaterContent.new(name: part.name, title: part.title)
+    %>
+    <div class="mt-1" data-block-reference-mode-target="inlinePane">
+      <%= f.fields_for :inline_content, inline_rc do |ff| %>
+        <%= ff.hidden_field :name, value: part.name %>
+        <%= ff.hidden_field :title, value: part.title %>
+
+        <%= ff.fields_for :parts, build_parts(ff.object, inline_parts) do |fff| %>
+          <%= fff.hidden_field :type, value: fff.object.class.name %>
+          <%= fff.hidden_field :name %>
+          <%= fff.hidden_field :title %>
+
+          <%= render "spina/admin/parts/#{parts_partial_namespace(fff.object.class.to_s)}/form", f: fff %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
 </div>
