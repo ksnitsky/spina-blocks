@@ -143,6 +143,31 @@ theme.parts = [
 
 With this configuration, the "Hero Block" select will only show blocks created with the `hero` template, and "Sidebar Blocks" will only show `sidebar_widget` blocks. If `options` is omitted or does not contain `block_template`, all active blocks are shown (the default behavior).
 
+#### Filling a reference in inline
+
+A `BlockReference` normally points at a shared block. Pass `inline: true` to also let editors fill the block template's fields in on the page itself, storing that content in the page rather than in a block record:
+
+```ruby
+theme.parts = [
+  { name: "testimonials", title: "Testimonials",
+    part_type: "Spina::Parts::BlockReference",
+    options: { block_template: "testimonials", inline: true } }
+]
+```
+
+The part form then offers two modes: **Select existing** (pick a shared block) and **Fill in here** (page-local content). Both render through the same block template partial, so `render_block(content(:testimonials))` is unchanged and the output is identical either way.
+
+Offering inline mode requires `block_template` — it is the field set editors fill in — and it is not available on parts bound to a `custom_block`. Without `inline: true` the part stays a plain block picker.
+
+Content already stored inline keeps rendering whatever you change later — the gate applies to the editor, not to rendering:
+
+- Remove `inline: true`: the content still shows on the site, and the page editor presents it as read-only rather than offering a block picker that couldn't override it.
+- Remove `block_template` but keep `inline: true`: the content stays editable, because the form falls back to the template it was filled in against.
+
+Either way a save preserves the stored content untouched.
+
+`inline: true` controls what the page editor offers, not what the model accepts; it is an authoring affordance rather than an access control.
+
 Then in your template:
 
 ```erb

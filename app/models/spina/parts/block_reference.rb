@@ -6,6 +6,8 @@ module Spina
       include BlockFilterable
       include AttrJson::NestedAttributes
 
+      BOOLEAN_TYPE = ActiveModel::Type::Boolean.new.freeze
+
       attr_json :block_id, :integer, default: nil
       # "reference" (default): points at a shared block via block_id / custom_block.
       # "inline": content is filled in and stored on the page itself.
@@ -38,6 +40,18 @@ module Spina
       # parts stay backward compatible.
       def inline?
         mode.to_s == "inline"
+      end
+
+      # Whether the theme lets this part be filled in inline. Off unless opted in,
+      # so a reference keeps meaning "pick a shared block" by default.
+      #
+      # This gates the editor only. Content already stored inline keeps rendering
+      # if the option is later removed, rather than vanishing from the site.
+      def inline_allowed?
+        return false if options.blank?
+
+        value = options.key?(:inline) ? options[:inline] : options["inline"]
+        BOOLEAN_TYPE.cast(value) || false
       end
 
       # Optional block template restriction from the part's theme options. Filters

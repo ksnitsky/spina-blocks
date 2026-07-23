@@ -6,15 +6,22 @@
   # leaves existing inline content editable instead of silently unrenderable.
   template_name = part.block_template_name.presence || part.inline_block_template.presence
 
+  # Inline mode is opt-in per part, needs a known field set, and never applies to
+  # a fixed system block.
   inline_parts = []
-  if template_name.present?
+  if part.inline_allowed? && part.custom_block_name.blank? && template_name.present?
     block_template = current_theme.block_templates.find { |bt| bt[:name].to_s == template_name.to_s }
     inline_parts = block_template&.dig(:parts) || []
   end
 
-  # Inline mode needs a known field set, and never applies to a fixed system block.
-  allow_inline = part.custom_block_name.blank? && inline_parts.any?
+  allow_inline = inline_parts.any?
   current_mode = part.inline? ? "inline" : "reference"
+
+  # Content filled in inline while the part no longer offers inline editing —
+  # the theme dropped `inline: true`, or its block template is gone. The content
+  # still renders, so offering the block picker here would be a no-op: `content`
+  # returns the inline content regardless of what's selected.
+  inline_not_editable = part.inline? && !allow_inline
 
   # Mirrors Spina::Pages::TabButtonComponent and the tabs controller's class
   # lists, so the toggle reads as a Spina tab bar. Applied server-side too, so
@@ -65,7 +72,9 @@
   <div class="<%= allow_inline ? "mt-4" : "mt-1" %>"
        data-block-reference-mode-target="referencePane"
        <%= "hidden" if allow_inline && current_mode != "reference" %>>
-    <% if part.custom_block_name.present? %>
+    <% if inline_not_editable %>
+      <span class="text-sm text-gray-400"><%= t("spina.blocks.inline_not_editable") %></span>
+    <% elsif part.custom_block_name.present? %>
       <% custom_block = part.custom_block_record %>
       <% if custom_block %>
         <%= link_to custom_block.name,
