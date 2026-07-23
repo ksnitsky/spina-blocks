@@ -126,6 +126,44 @@ RSpec.describe(Spina::Parts::BlockReference, type: :model) do
       end
     end
 
+    describe "#inline_allowed?" do
+      it "is false without options" do
+        part.options = nil
+        expect(part.inline_allowed?).to(be(false))
+      end
+
+      it "is false when the part doesn't opt in" do
+        part.options = { block_template: "testimonials_block" }
+        expect(part.inline_allowed?).to(be(false))
+      end
+
+      it "is true when opted in (symbol or string key)" do
+        part.options = { inline: true }
+        expect(part.inline_allowed?).to(be(true))
+
+        part.options = { "inline" => true }
+        expect(part.inline_allowed?).to(be(true))
+      end
+
+      it "casts truthy and falsy option values" do
+        part.options = { inline: "true" }
+        expect(part.inline_allowed?).to(be(true))
+
+        part.options = { inline: false }
+        expect(part.inline_allowed?).to(be(false))
+      end
+
+      it "does not gate rendering of content already stored inline" do
+        part.options = { block_template: "testimonials_block" }
+        part.mode = "inline"
+        part.inline_block_template = "testimonials_block"
+        part.inline_content = filled_inline_content
+
+        expect(part.inline_allowed?).to(be(false))
+        expect(part.content).to(be_a(Spina::Blocks::InlineBlock))
+      end
+    end
+
     describe "#block_template_name" do
       it "reads block_template from options (symbol or string key)" do
         part.options = { block_template: "testimonials_block" }

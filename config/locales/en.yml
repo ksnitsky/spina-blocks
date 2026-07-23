@@ -33,6 +33,7 @@ en:
       select_block: "— Select block —"
       mode_reference: "Select existing"
       mode_inline: "Fill in here"
+      inline_not_editable: "Filled in on this page. Inline editing is switched off for this part, so the content still shows on the site but can't be edited or replaced here."
       block_type: "Block type"
       select_block_type: "— Select block type —"
       no_blocks_yet: "No blocks yet. Create your first block to get started."
