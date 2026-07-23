@@ -31,7 +31,6 @@ export default class extends Controller {
       const isActive = button.dataset.mode === selected;
       button.classList.remove(...(isActive ? this.#inactiveClasses : this.#activeClasses));
       button.classList.add(...(isActive ? this.#activeClasses : this.#inactiveClasses));
-      button.setAttribute("aria-selected", isActive ? "true" : "false");
     });
 
     if (this.hasReferencePaneTarget) {
