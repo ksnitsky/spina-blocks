@@ -154,6 +154,26 @@ RSpec.describe(Spina::Parts::BlockReference, type: :model) do
         expect(result.content(:section_title)).to(eq("Reviews"))
       end
 
+      it "uses the persisted inline_block_template when no options are attached" do
+        part.options = nil
+        part.mode = "inline"
+        part.inline_block_template = "testimonials_block"
+        part.inline_content = filled_inline_content
+
+        result = part.content
+        expect(result).to(be_a(Spina::Blocks::InlineBlock))
+        expect(result.block_template).to(eq("testimonials_block"))
+      end
+
+      it "prefers the persisted template over the options template" do
+        part.options = { block_template: "stale_block" }
+        part.mode = "inline"
+        part.inline_block_template = "testimonials_block"
+        part.inline_content = filled_inline_content
+
+        expect(part.content.block_template).to(eq("testimonials_block"))
+      end
+
       it "returns nil when inline content has no filled parts" do
         part.mode = "inline"
         part.inline_content = empty_inline_content

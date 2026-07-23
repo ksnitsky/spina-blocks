@@ -70,6 +70,9 @@
                   Spina::Parts::RepeaterContent.new(name: part.name, title: part.title)
     %>
     <div class="mt-1" data-block-reference-mode-target="inlinePane">
+      <%# Persisted with the content so rendering doesn't depend on theme options. %>
+      <%= f.hidden_field :inline_block_template, value: template_name %>
+
       <%= f.fields_for :inline_content, inline_rc do |ff| %>
         <%= ff.hidden_field :name, value: part.name %>
         <%= ff.hidden_field :title, value: part.title %>

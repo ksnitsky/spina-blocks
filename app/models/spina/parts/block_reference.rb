@@ -14,6 +14,12 @@ module Spina
       # content: a RepeaterContent holding the block template's parts.
       attr_json :inline_content, RepeaterContent.to_type, default: nil
       attr_json_accepts_nested_attributes_for :inline_content
+      # The block template inline content was filled in against, persisted with
+      # the content itself. Part options are a theme-side concern and are only
+      # attached when Spina builds parts for the admin form — parts deserialized
+      # from stored page JSON (i.e. when rendering the site) carry none — so
+      # inline content has to be self-describing to render.
+      attr_json :inline_block_template, :string, default: nil
 
       attr_accessor :options
 
@@ -34,8 +40,9 @@ module Spina
         mode.to_s == "inline"
       end
 
-      # The block template this reference is bound to (from part options). Drives
-      # both the reference-mode filter and the inline-mode field set.
+      # Optional block template restriction from the part's theme options. Filters
+      # the block picker and, when present, is what inline mode fills in against.
+      # Only available where options are attached (the admin form).
       def block_template_name
         return if options.blank?
 
@@ -67,7 +74,7 @@ module Spina
         parts = Array(inline_content.parts)
         return nil if parts.none? { |part| part.content.present? }
 
-        ::Spina::Blocks::InlineBlock.new(inline_content, block_template_name)
+        ::Spina::Blocks::InlineBlock.new(inline_content, inline_block_template.presence || block_template_name)
       end
     end
   end
