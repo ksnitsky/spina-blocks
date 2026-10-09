@@ -43,7 +43,7 @@
            data-action="input->block-collection#onSearchInput focus->block-collection#onSearchFocus"
            placeholder="Search or add block..."
            autocomplete="off"
-           class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-spina focus:ring-spina" />
+           class="block w-full rounded-md border-gray-300 shadow-xs text-sm focus:border-spina focus:ring-spina" />
 
     <div data-block-collection-target="dropdown"
          style="display:none"
@@ -68,7 +68,7 @@
 
   <%# Selected block list item %>
   <template data-block-collection-target="listItemTemplate">
-    <div class="flex items-center bg-white border border-gray-200 rounded-md px-3 py-2 shadow-sm group" data-block-id="">
+    <div class="flex items-center bg-white border border-gray-200 rounded-md px-3 py-2 shadow-xs group" data-block-id="">
       <button type="button" data-sortable-handle class="mr-2 text-gray-300 hover:text-gray-500 cursor-grab" title="Drag to reorder">
         <svg class="w-4 h-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
           <path d="M432 288H16c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16h416c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16zm0-112H16c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16h416c8.8 0 16-7.2 16-16v-16c0-8.8-7.2-16-16-16z"/>
@@ -84,7 +84,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
         </svg>
       </a>
-      <button type="button" class="ml-2 text-gray-300 hover:text-red-500 transition-colors"
+      <button type="button" class="ml-2 cursor-pointer text-gray-300 hover:text-red-500 transition-colors"
               data-action="block-collection#remove" data-block-id="" title="Remove">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -101,7 +101,7 @@
   <%# Dropdown option (available block) %>
   <template data-block-collection-target="dropdownOptionTemplate">
     <button type="button"
-            class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+            class="w-full cursor-pointer text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
             data-action="block-collection#add" data-block-id="">
       <span data-role="title"></span>
     </button>

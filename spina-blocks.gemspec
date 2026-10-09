@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
 
   gem.files = Dir["{app,config,db,lib}/**/*"] + ["Rakefile", "README.md"]
 
-  gem.add_dependency("spina", ">= 2.0")
+  gem.add_dependency("spina", ">= 2.21", "< 3")
 
   gem.add_development_dependency("database_cleaner-active_record")
   gem.add_development_dependency("factory_bot_rails")

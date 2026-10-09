@@ -4,6 +4,10 @@
 
 A plugin for [Spina CMS](https://www.spinacms.com) that adds reusable block components. Blocks are independent content units with their own templates and fields that can be assembled into pages.
 
+## Requirements
+
+- Spina 2.21 or newer. Spina 2.21 builds its admin UI with Tailwind CSS 4, and the plugin's admin views use Tailwind 4 utility names. On Spina 2.20 or older, use spina-blocks 0.4.x.
+
 ## Installation
 
 Add to your Gemfile:
@@ -21,7 +25,15 @@ rails generate spina:blocks:install
 
 This copies the plugin's migrations into your app and runs `db:migrate`.
 
+The plugin registers its views, helpers and JavaScript in `Spina.config.tailwind_content`, so `rails spina:tailwind:build` (also run by `assets:precompile`) picks up the classes it uses in Spina's admin CSS.
+
 ## Upgrading
+
+### To 0.5.0 (Spina 2.21)
+
+Upgrade Spina to 2.21 together with spina-blocks 0.5.0, then rebuild the admin CSS with `rails spina:tailwind:build`. Spina 2.21 needs `tailwindcss-ruby` 4. It generates `app/assets/stylesheets/spina/application.tailwind.css` (with an `@source` line for every `tailwind_content` path) in place of the old `app/assets/config/spina/tailwind.config.js`.
+
+### From timestamp migrations
 
 If you are upgrading from a version that used timestamp migrations (`20250101000001`–`20250101000004`), the new migrations will detect the old version numbers in your `schema_migrations` table, clean them up automatically, and skip any tables that already exist. No manual intervention is needed.
 

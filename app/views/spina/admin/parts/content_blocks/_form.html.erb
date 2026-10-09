@@ -43,7 +43,7 @@
            style="display:none">
         <% available_templates.each do |template| %>
           <button type="button"
-                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  class="w-full cursor-pointer text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   data-action="content-blocks#addBlock"
                   data-block-type="<%= template[:name] %>">
             <%= template[:title] || template[:name].titleize %>
