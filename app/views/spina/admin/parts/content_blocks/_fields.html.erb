@@ -10,7 +10,7 @@
 <% template_title = template_config[:title] || f.object.block_type&.titleize || "Block" %>
 <% parts = template_config[:parts] || [] %>
 
-<div class="border border-gray-200 rounded-md bg-white shadow-sm"
+<div class="border border-gray-200 rounded-md bg-white shadow-xs"
      data-<%= sc %>-target="block"
      data-block-type="<%= f.object.block_type %>">
 
@@ -30,7 +30,7 @@
     <span class="flex-1 text-sm font-medium text-gray-700"><%= template_title %></span>
 
     <button type="button"
-            class="ml-3 text-gray-300 hover:text-red-500 transition-colors"
+            class="ml-3 cursor-pointer text-gray-300 hover:text-red-500 transition-colors"
             data-action="click-><%= sc %>#removeBlock:stop"
             title="<%= t('spina.content_blocks.remove') %>">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
